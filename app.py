@@ -250,7 +250,12 @@ default_code = user_settings.get("default_code", "")
 is_new       = user_settings.get("is_new", False)
 
 # ヘッダー
-st.markdown("## ✈️ ベイパー予報")
+st.markdown(
+    f'<h2 style="display:flex;align-items:center;gap:10px;">'
+    f'<img src="data:image/png;base64,{_ICON_B64}" width="36" style="border-radius:6px;">'
+    f'ベイパー予報</h2>',
+    unsafe_allow_html=True,
+)
 st.caption(f"更新: {datetime.now(JST).strftime('%m/%d %H:%M')} JST　|　METAR（30分キャッシュ）")
 
 # 初回ユーザー向けメッセージ
