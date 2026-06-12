@@ -176,7 +176,7 @@ def fetch_bakuyake(lat: float, lon: float):
             "hourly": "cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,visibility,precipitation",
             "daily": "sunset",
             "timezone": "Asia/Tokyo",
-            "forecast_days": 1,
+            "forecast_days": 7,
         },
         timeout=10,
     )
@@ -184,12 +184,12 @@ def fetch_bakuyake(lat: float, lon: float):
     return res.json()
 
 
-def _parse_sunset_conditions(data: dict) -> dict:
-    sunset_str = data["daily"]["sunset"][0]
+def _parse_sunset_conditions(data: dict, day_idx: int = 0) -> dict:
+    sunset_str = data["daily"]["sunset"][day_idx]
     sunset_dt = datetime.fromisoformat(sunset_str)
     times = data["hourly"]["time"]
     target = sunset_dt.strftime("%Y-%m-%dT%H:00")
-    idx = times.index(target) if target in times else len(times) - 1
+    idx = times.index(target) if target in times else min(day_idx * 24 + 19, len(times) - 1)
     h = data["hourly"]
     precip_3h = sum(v or 0 for v in h["precipitation"][max(0, idx - 2): idx + 1])
     return {
@@ -535,5 +535,107 @@ else:
   <div class="bk-cond">雲量 {cond['cloud']}%　高層雲 {cond['cloud_high']}%　湿度 {cond['humidity']}%　視程 {vis_km:.0f}km{rain_txt}</div>
 </div>
 """, unsafe_allow_html=True)
+
+        # 6日ミニスコア行（明日〜）
+        WDAYS = ["月", "火", "水", "木", "金", "土", "日"]
+        n_days = len(raw["daily"]["sunset"])
+        mini_items = []
+        for i in range(1, n_days):  # 今日（0）はスキップ
+            d = datetime.fromisoformat(raw["daily"]["sunset"][i])
+            wd = WDAYS[d.weekday()]
+            date_str = "明日" if i == 1 else f"{d.month}/{d.day}"
+            lbl = f'{date_str}<br><span style="color:#666;font-size:0.9em;">({wd})</span>'
+            c_i = _parse_sunset_conditions(raw, i)
+            s_i = calc_bakuyake_score(c_i)
+            _, _, cls_i = judge_bakuyake(s_i)
+            bg  = {"hot": "#2a1200", "warm": "#271c08", "mild": "#151c22", "cool": "#111"}[cls_i]
+            bdr = {"hot": "#ff6b35", "warm": "#f39c12", "mild": "#8e9eab", "cool": "#445566"}[cls_i]
+            mini_items.append(
+                f'<div style="flex:1;text-align:center;padding:10px 4px 8px;border-radius:12px;'
+                f'background:{bg};border:1px solid {bdr};">'
+                f'<div style="font-size:0.7em;color:#999;margin-bottom:4px;line-height:1.4;">{lbl}</div>'
+                f'<div style="font-size:1.4em;font-weight:bold;color:#fff;line-height:1;">{s_i}</div>'
+                f'<div style="height:3px;border-radius:2px;background:{bdr};margin:5px 6px 0;"></div>'
+                f'</div>'
+            )
+        st.markdown(
+            '<div style="display:flex;gap:6px;width:100%;box-sizing:border-box;padding:6px 0 2px;">'
+            + "".join(mini_items) + "</div>",
+            unsafe_allow_html=True,
+        )
     except Exception as e:
         st.error(f"データ取得エラー: {e}")
+
+with st.expander("📐 爆焼けスコアの計算式"):
+    st.markdown("""
+**スコア構成（合計100点）**
+
+| 指標 | 配点 | 理想値 |
+|---|---|---|
+| 全体雲量 | 40点 | 20〜50%（キャンバスとなる適度な雲） |
+| 湿度 | 25点 | 40%以下（低いほど透明度が高い） |
+| 視程 | 15点 | 20km以上（大気が澄んでいる） |
+| 高層雲（巻雲） | 10点 | 多いほど良い（光を広域に拡散） |
+| 雨上がりボーナス | 10点 | 直近3時間に0.5〜15mm（空気が洗われた後） |
+
+---
+
+**全体雲量スコアの計算**
+
+```
+雲量 0%        → 0点  （キャンバスなし）
+雲量 20〜50%   → 満点 （光を反射する適度な雲）
+雲量 50〜80%   → 逓減 （厚くなりすぎると光が通らない）
+雲量 80%以上   → 0点  （太陽光が届かない）
+```
+
+**湿度スコアの計算**
+
+```
+湿度 40%以下   → 満点
+湿度 40〜80%   → 線形に逓減
+湿度 80%以上   → 0点
+```
+
+---
+
+**判定基準**
+
+| スコア | 判定 |
+|---|---|
+| 70〜100 | 🔥 爆焼けチャンス！ |
+| 50〜69  | 🌅 期待できる |
+| 30〜49  | 🌤 少し期待 |
+| 0〜29   | 😐 今日は厳しいかも |
+
+---
+
+**なぜ雲量が多すぎてもダメなのか**
+
+夕焼けは太陽が地平線に沈む直前、大気を斜めに通過した赤い光が
+雲に当たって反射することで起きる。
+雲が少なすぎると反射面がなく、多すぎると光が雲で遮られる。
+「適度な雲が西空にあり、頭上は晴れている」状態が最適。
+
+**高層雲（巻雲）がなぜ重要か**
+
+高度8〜12kmの薄い巻雲は、光を遮らずに広く拡散させる。
+夕焼けが空全体を染める爆焼けには、この巻雲の存在が大きく効く。
+""")
+    st.markdown("""
+---
+
+**データソース**
+
+| 項目 | 取得元 | 変数名 |
+|---|---|---|
+| 日没時刻 | [Open-Meteo](https://open-meteo.com/) daily | `sunset` |
+| 全体雲量 | Open-Meteo hourly | `cloud_cover` |
+| 高層雲量 | Open-Meteo hourly | `cloud_cover_high`（高度8km以上） |
+| 湿度 | Open-Meteo hourly | `relative_humidity_2m` |
+| 視程 | Open-Meteo hourly | `visibility`（単位: m） |
+| 降水量 | Open-Meteo hourly | `precipitation`（日没前3時間の合計） |
+
+日没時刻を含む1時間ブロック（例: 日没19:11 → 19:00台）の気象データを使用。キャッシュ: 30分。
+""")
+    st.caption("空港座標から Open-Meteo API（無料・APIキー不要）で取得")
