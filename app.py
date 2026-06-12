@@ -550,7 +550,7 @@ def show_card(code, name):
 
 # ページ設定
 st.set_page_config(
-    page_title="ベイパー予報",
+    page_title="Airport Forcast",
     page_icon=_ICON_IMG,
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -619,7 +619,7 @@ is_new       = user_settings.get("is_new", False)
 st.markdown(
     f'<h2 style="display:flex;align-items:center;gap:10px;">'
     f'<img src="data:image/png;base64,{_ICON_B64}" width="36" style="border-radius:6px;">'
-    f'ベイパー予報</h2>',
+    f'Airport Forcast</h2>',
     unsafe_allow_html=True,
 )
 st.caption(f"更新: {datetime.now(JST).strftime('%m/%d %H:%M')} JST　|　METAR（30分キャッシュ）")
@@ -855,6 +855,7 @@ if selected_code:
     st.divider()
 
     # ベイパー
+    st.markdown("### ✈ ベイパー予報")
     show_card(selected_code, selected_name)
 
     with st.expander("📐 ベイパー発生の計算式"):
