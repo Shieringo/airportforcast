@@ -301,10 +301,10 @@ def show_rwy14_card(code, item):
     in_blue = tailwind >= 10.0
     blue_label = "　🔵 ブルーゾーン" if in_blue else ""
 
-    if tailwind >= 10.0:
+    if tailwind >= 12.0:
         card_color, bg_color = "#e74c3c", "#270b0b"
         verdict = "🔴 ブルーゾーン — 状態が続けば RWY14 の可能性"
-    elif tailwind >= 6.0:
+    elif tailwind >= 9.0:
         card_color, bg_color = "#f39c12", "#271c08"
         verdict = "🟡 ブルーゾーン接近中"
     else:
