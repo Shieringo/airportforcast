@@ -5,6 +5,7 @@ vapor app.py  - ベイパー予報 Webアプリ
 import base64
 import io
 import json
+import math
 import os
 import uuid
 import requests
@@ -248,6 +249,89 @@ def judge_vapor(spread):
         return "❌ まず出ない", "#e74c3c", "red"
 
 
+def wind_compass(deg):
+    dirs = ["北", "北北東", "北東", "東北東", "東", "東南東", "南東", "南南東",
+            "南", "南南西", "南西", "西南西", "西", "西北西", "北西", "北北西"]
+    return dirs[round(float(deg) / 22.5) % 16]
+
+
+def calc_rwy14_probability(wdir, wspd):
+    """RWY14運用確率(0-100)とRWY32追い風成分(kt)を返す。算出不可は(None, None)"""
+    if wdir is None or wspd is None:
+        return None, None
+    try:
+        wdir_f = float(wdir)
+        wspd_f = float(wspd)
+    except (ValueError, TypeError):
+        return None, None
+    # RWY32(heading 320°)の追い風成分 = wspd × cos(wdir - 140°)
+    # 10kt以上がブルーゾーン（RWY14運用の可能性）
+    tailwind = wspd_f * math.cos(math.radians(wdir_f - 140))
+    tailwind = round(tailwind, 1)
+    prob = min(100, max(0, round(tailwind * 8)))
+    return prob, tailwind
+
+
+def show_rwy14_card(code, item):
+    if code != "RJOO" or item is None:
+        return
+    wdir = item.get("wdir")
+    wspd = item.get("wspd")
+    wgst = item.get("wgst")
+    prob, tailwind = calc_rwy14_probability(wdir, wspd)
+
+    try:
+        wdir_f = float(wdir)
+        wspd_f = float(wspd)
+        wind_info = f"{wdir_f:.0f}° {wind_compass(wdir_f)} / {wspd_f:.0f}kt"
+        if wgst:
+            wind_info += f"（最大 {float(wgst):.0f}kt）"
+    except (ValueError, TypeError):
+        wind_info = f"VRB / {wspd}kt" if wspd else "---"
+
+    if prob is None:
+        st.markdown(f"""
+<div style="border-radius:18px;padding:18px 20px;margin:14px 0;border-left:7px solid #555;background:#1a1a2e;">
+  <div style="font-size:0.78em;color:#999;margin-bottom:6px;">RWY14 運用確率 — 大阪国際空港</div>
+  <div style="color:#aaa;">{wind_info}　（追い風成分算出不可）</div>
+</div>
+""", unsafe_allow_html=True)
+        return
+
+    in_blue = tailwind >= 10.0
+    blue_label = "　🔵 ブルーゾーン" if in_blue else ""
+
+    if prob >= 70:
+        card_color, bg_color = "#e74c3c", "#270b0b"
+        verdict = "🔴 RWY14 運用の可能性大"
+    elif prob >= 40:
+        card_color, bg_color = "#f39c12", "#271c08"
+        verdict = "🟡 RWY14 運用の可能性あり"
+    else:
+        card_color, bg_color = "#2ecc71", "#0b2118"
+        verdict = "🟢 RWY32 通常運用"
+
+    st.markdown(f"""
+<div style="border-radius:18px;padding:18px 20px;margin:14px 0;border-left:7px solid {card_color};background:{bg_color};">
+  <div style="font-size:0.78em;color:#999;margin-bottom:8px;">✈ RWY14 運用確率 — 大阪国際空港</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div>
+      <div style="font-size:1.3em;font-weight:bold;color:#fff;">{wind_info}</div>
+      <div style="font-size:0.82em;color:#888;margin-top:4px;">RWY32 追い風成分: {tailwind}kt{blue_label}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:0.72em;color:#999;">RWY14確率</div>
+      <div style="font-size:2.6em;font-weight:bold;color:#fff;line-height:1.1;">{prob}<span style="font-size:0.5em;color:#888;">%</span></div>
+    </div>
+  </div>
+  <div style="height:8px;background:#333;border-radius:4px;margin:10px 0 8px;">
+    <div style="height:8px;border-radius:4px;background:{card_color};width:{prob}%;"></div>
+  </div>
+  <div style="font-size:1.1em;font-weight:bold;color:{card_color};">{verdict}</div>
+</div>
+""", unsafe_allow_html=True)
+
+
 def show_card(code, name):
     try:
         item = fetch_metar(code)
@@ -446,6 +530,13 @@ if selected_code:
             st.rerun()
 
     show_card(selected_code, selected_name)
+
+    # 伊丹専用: RWY14運用確率
+    if selected_code == "RJOO":
+        try:
+            show_rwy14_card(selected_code, fetch_metar(selected_code))
+        except Exception:
+            pass
 
     if st.button("🔄 データを更新", use_container_width=True):
         st.cache_data.clear()
