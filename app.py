@@ -298,15 +298,14 @@ def show_rwy14_card(code, item):
 """, unsafe_allow_html=True)
         return
 
-    in_blue = tailwind >= 10.0
-    blue_label = "　🔵 ブルーゾーン" if in_blue else ""
+    rancen_label = "　ランチェンゾーン" if tailwind >= 10.0 else ""
 
     if tailwind >= 12.0:
         card_color, bg_color = "#e74c3c", "#270b0b"
-        verdict = "🔴 ブルーゾーン — 状態が続けば RWY14 の可能性"
+        verdict = "🔴 ランチェンゾーン — 状態が続けば RWY14 の可能性"
     elif tailwind >= 9.0:
         card_color, bg_color = "#f39c12", "#271c08"
-        verdict = "🟡 ブルーゾーン接近中"
+        verdict = "🟡 ランチェンゾーン接近中"
     else:
         card_color, bg_color = "#2ecc71", "#0b2118"
         verdict = "🟢 RWY32 通常運用"
@@ -317,7 +316,7 @@ def show_rwy14_card(code, item):
   <div style="display:flex;justify-content:space-between;align-items:flex-start;">
     <div>
       <div style="font-size:1.3em;font-weight:bold;color:#fff;">{wind_info}</div>
-      <div style="font-size:1.2em;font-weight:bold;color:#ccc;margin-top:6px;">追い風成分: {tailwind}{blue_label}</div>
+      <div style="font-size:1.2em;font-weight:bold;color:#ccc;margin-top:6px;">追い風成分: {tailwind}{rancen_label}</div>
     </div>
     <div style="text-align:right;">
       <div style="font-size:0.72em;color:#999;">ワンフォースコア</div>
@@ -333,7 +332,7 @@ def show_rwy14_card(code, item):
 """, unsafe_allow_html=True)
     with st.expander("📐 ワンフォースコアの計算式"):
         st.markdown(f"""
-**追い風成分（青色セル値）**
+**追い風成分**
 ```
 追い風成分 = 風速 × cos(風向 − 140°)
 ```
@@ -352,8 +351,6 @@ def show_rwy14_card(code, item):
 | 12.0 以上 | 🔴 断続継続で RWY14 運用の可能性大 |
 | 9.0〜11.9 | 🟡 ランチェン可能性あり |
 | 9.0 未満 | 🟢 RWY32 通常運用 |
-
-🔵 ブルーゾーン = 追い風成分 10.0 以上（追い風成分表の青色セル）
 
 ---
 
@@ -564,86 +561,23 @@ if selected_code:
             save_user_settings(user_id, user_settings)
             st.rerun()
 
-    show_card(selected_code, selected_name)
-
-    with st.expander("📐 ベイパー発生の計算式"):
-        st.markdown("""
-**スプレッド（温度差）**
-```
-スプレッド = 気温 − 露点温度
-```
-
-| スプレッド | 判定 |
-|---|---|
-| 0〜1°C | ✅ ほぼ確実に出る |
-| 1〜3°C | ⚡ 出る可能性あり |
-| 3°C 超 | ❌ まず出ない |
-
----
-
-**露点温度の計算（Magnus式）**
-
-湿度（%）と気温（°C）から露点温度を求める近似式：
-```
-Td = T − ((100 − RH) / 5)
-```
-- `T`  = 気温（°C）
-- `RH` = 相対湿度（%）
-- `Td` = 露点温度（°C）
-
-精密版（Magnus式）：
-```
-α  = ln(RH/100) + 17.625 × T / (243.04 + T)
-Td = 243.04 × α / (17.625 − α)
-```
-
----
-
-**なぜスプレッドが小さいと出るのか**
-
-着陸時に翼端渦・フラップ後縁で局所的な気圧降下が発生する。
-この圧力低下により温度がさらに下がり、露点に達して空気中の
-水分が凝結してベイパーとして可視化される。
-
-- 朝方・雨上がり直後・海沿い → 湿度が高くなりやすい
-- 大型機・フル高揚力装置展開の着陸時 → 渦が強く出やすい
-""")
-        st.caption("データソース: aviationweather.gov（METAR）| 30分キャッシュ")
-
-    # 伊丹専用: RWY14運用確率
-    if selected_code == "RJOO":
+    # 爆焼け予報
+    st.markdown("### 🌅 爆焼け予報")
+    st.caption("日没時の気象データから爆焼けの可能性をスコア化します")
+    if selected_code in AIRPORT_COORDS:
         try:
-            show_rwy14_card(selected_code, fetch_metar(selected_code))
-        except Exception:
-            pass
-
-    if st.button("🔄 データを更新", use_container_width=True):
-        st.cache_data.clear()
-        st.rerun()
-
-# 爆焼け予報セクション
-st.divider()
-st.markdown("### 🌅 爆焼け予報")
-st.caption("日没時の気象データから爆焼けの可能性をスコア化します")
-
-bk_code = selected_code if selected_code and selected_code in AIRPORT_COORDS else None
-
-if bk_code is None:
-    st.info("空港を選ぶと、その地点の爆焼けスコアが表示されます。")
-else:
-    try:
-        lat, lon = AIRPORT_COORDS[bk_code]
-        raw = fetch_bakuyake(lat, lon)
-        cond = _parse_sunset_conditions(raw)
-        score = calc_bakuyake_score(cond)
-        verdict, color, cls = judge_bakuyake(score)
-        bar_colors = {"hot": "#ff6b35", "warm": "#f39c12", "mild": "#8e9eab", "cool": "#445566"}
-        bar_color = bar_colors[cls]
-        sunset_str = cond["sunset_dt"].strftime("%H:%M")
-        airport_name = get_airport_name(bk_code)
-        vis_km = cond["vis_m"] / 1000
-        rain_txt = "　🌂 雨上がり" if cond["precip_3h"] >= 0.5 else ""
-        st.markdown(f"""
+            lat, lon = AIRPORT_COORDS[selected_code]
+            raw = fetch_bakuyake(lat, lon)
+            cond = _parse_sunset_conditions(raw)
+            score = calc_bakuyake_score(cond)
+            verdict, color, cls = judge_bakuyake(score)
+            bar_colors = {"hot": "#ff6b35", "warm": "#f39c12", "mild": "#8e9eab", "cool": "#445566"}
+            bar_color = bar_colors[cls]
+            sunset_str = cond["sunset_dt"].strftime("%H:%M")
+            airport_name = get_airport_name(selected_code)
+            vis_km = cond["vis_m"] / 1000
+            rain_txt = "　🌂 雨上がり" if cond["precip_3h"] >= 0.5 else ""
+            st.markdown(f"""
 <div class="bakuyake-card {cls}">
   <div class="bk-header">
     <div>
@@ -661,38 +595,38 @@ else:
 </div>
 """, unsafe_allow_html=True)
 
-        # 6日ミニスコア行（明日〜）
-        WDAYS = ["月", "火", "水", "木", "金", "土", "日"]
-        n_days = len(raw["daily"]["sunset"])
-        mini_items = []
-        for i in range(1, n_days):  # 今日（0）はスキップ
-            d = datetime.fromisoformat(raw["daily"]["sunset"][i])
-            wd = WDAYS[d.weekday()]
-            date_str = "明日" if i == 1 else f"{d.month}/{d.day}"
-            lbl = f'{date_str}<br><span style="color:#666;font-size:0.9em;">({wd})</span>'
-            c_i = _parse_sunset_conditions(raw, i)
-            s_i = calc_bakuyake_score(c_i)
-            _, _, cls_i = judge_bakuyake(s_i)
-            bg  = {"hot": "#2a1200", "warm": "#271c08", "mild": "#151c22", "cool": "#111"}[cls_i]
-            bdr = {"hot": "#ff6b35", "warm": "#f39c12", "mild": "#8e9eab", "cool": "#445566"}[cls_i]
-            mini_items.append(
-                f'<div style="flex:1;text-align:center;padding:10px 4px 8px;border-radius:12px;'
-                f'background:{bg};border:1px solid {bdr};">'
-                f'<div style="font-size:0.7em;color:#999;margin-bottom:4px;line-height:1.4;">{lbl}</div>'
-                f'<div style="font-size:1.4em;font-weight:bold;color:#fff;line-height:1;">{s_i}</div>'
-                f'<div style="height:3px;border-radius:2px;background:{bdr};margin:5px 6px 0;"></div>'
-                f'</div>'
+            # 6日ミニスコア行（明日〜）
+            WDAYS = ["月", "火", "水", "木", "金", "土", "日"]
+            n_days = len(raw["daily"]["sunset"])
+            mini_items = []
+            for i in range(1, n_days):
+                d = datetime.fromisoformat(raw["daily"]["sunset"][i])
+                wd = WDAYS[d.weekday()]
+                date_str = "明日" if i == 1 else f"{d.month}/{d.day}"
+                lbl = f'{date_str}<br><span style="color:#666;font-size:0.9em;">({wd})</span>'
+                c_i = _parse_sunset_conditions(raw, i)
+                s_i = calc_bakuyake_score(c_i)
+                _, _, cls_i = judge_bakuyake(s_i)
+                bg  = {"hot": "#2a1200", "warm": "#271c08", "mild": "#151c22", "cool": "#111"}[cls_i]
+                bdr = {"hot": "#ff6b35", "warm": "#f39c12", "mild": "#8e9eab", "cool": "#445566"}[cls_i]
+                mini_items.append(
+                    f'<div style="flex:1;text-align:center;padding:10px 4px 8px;border-radius:12px;'
+                    f'background:{bg};border:1px solid {bdr};">'
+                    f'<div style="font-size:0.7em;color:#999;margin-bottom:4px;line-height:1.4;">{lbl}</div>'
+                    f'<div style="font-size:1.4em;font-weight:bold;color:#fff;line-height:1;">{s_i}</div>'
+                    f'<div style="height:3px;border-radius:2px;background:{bdr};margin:5px 6px 0;"></div>'
+                    f'</div>'
+                )
+            st.markdown(
+                '<div style="display:flex;gap:6px;width:100%;box-sizing:border-box;padding:6px 0 2px;">'
+                + "".join(mini_items) + "</div>",
+                unsafe_allow_html=True,
             )
-        st.markdown(
-            '<div style="display:flex;gap:6px;width:100%;box-sizing:border-box;padding:6px 0 2px;">'
-            + "".join(mini_items) + "</div>",
-            unsafe_allow_html=True,
-        )
-    except Exception as e:
-        st.error(f"データ取得エラー: {e}")
+        except Exception as e:
+            st.error(f"データ取得エラー: {e}")
 
-with st.expander("📐 爆焼けスコアの計算式"):
-    st.markdown("""
+    with st.expander("📐 爆焼けスコアの計算式"):
+        st.markdown("""
 **スコア構成（合計100点）**
 
 | 指標 | 配点 | 理想値 |
@@ -747,7 +681,7 @@ with st.expander("📐 爆焼けスコアの計算式"):
 高度8〜12kmの薄い巻雲は、光を遮らずに広く拡散させる。
 夕焼けが空全体を染める爆焼けには、この巻雲の存在が大きく効く。
 """)
-    st.markdown("""
+        st.markdown("""
 ---
 
 **データソース**
@@ -763,4 +697,64 @@ with st.expander("📐 爆焼けスコアの計算式"):
 
 日没時刻を含む1時間ブロック（例: 日没19:11 → 19:00台）の気象データを使用。キャッシュ: 30分。
 """)
-    st.caption("空港座標から Open-Meteo API（無料・APIキー不要）で取得")
+        st.caption("空港座標から Open-Meteo API（無料・APIキー不要）で取得")
+
+    st.divider()
+
+    # ベイパー
+    show_card(selected_code, selected_name)
+
+    with st.expander("📐 ベイパー発生の計算式"):
+        st.markdown("""
+**スプレッド（温度差）**
+```
+スプレッド = 気温 − 露点温度
+```
+
+| スプレッド | 判定 |
+|---|---|
+| 0〜1°C | ✅ ほぼ確実に出る |
+| 1〜3°C | ⚡ 出る可能性あり |
+| 3°C 超 | ❌ まず出ない |
+
+---
+
+**露点温度の計算（Magnus式）**
+
+湿度（%）と気温（°C）から露点温度を求める近似式：
+```
+Td = T − ((100 − RH) / 5)
+```
+- `T`  = 気温（°C）
+- `RH` = 相対湿度（%）
+- `Td` = 露点温度（°C）
+
+精密版（Magnus式）：
+```
+α  = ln(RH/100) + 17.625 × T / (243.04 + T)
+Td = 243.04 × α / (17.625 − α)
+```
+
+---
+
+**なぜスプレッドが小さいと出るのか**
+
+着陸時に翼端渦・フラップ後縁で局所的な気圧降下が発生する。
+この圧力低下により温度がさらに下がり、露点に達して空気中の
+水分が凝結してベイパーとして可視化される。
+
+- 朝方・雨上がり直後・海沿い → 湿度が高くなりやすい
+- 大型機・フル高揚力装置展開の着陸時 → 渦が強く出やすい
+""")
+        st.caption("データソース: aviationweather.gov（METAR）| 30分キャッシュ")
+
+    # ワンフォー（伊丹専用）
+    if selected_code == "RJOO":
+        try:
+            show_rwy14_card(selected_code, fetch_metar(selected_code))
+        except Exception:
+            pass
+
+    if st.button("🔄 データを更新", use_container_width=True):
+        st.cache_data.clear()
+        st.rerun()
