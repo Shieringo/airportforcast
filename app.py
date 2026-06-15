@@ -4,10 +4,8 @@ vapor app.py  - ベイパー予報 Webアプリ
 """
 import base64
 import io
-import json
 import math
-import os
-import uuid
+import re
 import requests
 import streamlit as st
 from datetime import datetime, timezone, timedelta
@@ -81,9 +79,6 @@ _ICON_IMG = _make_icon()
 _buf = io.BytesIO()
 _ICON_IMG.convert("RGB").save(_buf, format="PNG")
 _ICON_B64 = base64.b64encode(_buf.getvalue()).decode()
-USERS_DIR = os.path.join(os.path.dirname(__file__), "users")
-os.makedirs(USERS_DIR, exist_ok=True)
-
 AIRPORT_COORDS = {
     "RJCO": (43.116, 141.381), "RJEC": (43.671, 142.448),
     "RJCK": (43.041, 144.193), "RJCB": (43.880, 144.164),
@@ -136,26 +131,6 @@ AIRPORTS_BY_REGION = {
         "ROAH": "那覇空港",
     },
 }
-
-
-def get_user_file(user_id):
-    return os.path.join(USERS_DIR, f"{user_id}.json")
-
-
-def load_user_settings(user_id):
-    f = get_user_file(user_id)
-    if os.path.exists(f):
-        with open(f, "r", encoding="utf-8") as fp:
-            data = json.load(fp)
-            data["is_new"] = False
-            return data
-    return {"bookmarks": [], "default_code": "", "is_new": True}
-
-
-def save_user_settings(user_id, settings):
-    data = {k: v for k, v in settings.items() if k != "is_new"}
-    with open(get_user_file(user_id), "w", encoding="utf-8") as fp:
-        json.dump(data, fp, ensure_ascii=False)
 
 
 def get_airport_name(code):
@@ -605,15 +580,39 @@ st.markdown("""
 
 # ユーザーID管理
 user_id = st.query_params.get("u", None)
-if not user_id:
-    new_id = uuid.uuid4().hex[:8]
-    st.query_params["u"] = new_id
-    st.rerun()
 
-user_settings = load_user_settings(user_id)
-bookmarks    = user_settings.get("bookmarks", [])
-default_code = user_settings.get("default_code", "")
-is_new       = user_settings.get("is_new", False)
+if not user_id:
+    st.markdown(
+        f'<h2 style="display:flex;align-items:center;gap:10px;">'
+        f'<img src="data:image/png;base64,{_ICON_B64}" width="36" style="border-radius:6px;">'
+        f'Airport Forcast</h2>',
+        unsafe_allow_html=True,
+    )
+    st.divider()
+    st.markdown("### 初回設定")
+    st.markdown("ユーザー名を設定すると、ブックマークや設定がURLに保存されます。  \n次回からはそのURLをブラウザにブックマークするだけでOKです。")
+    col_i, col_b = st.columns([3, 1])
+    with col_i:
+        uname = st.text_input(
+            "ユーザー名",
+            placeholder="例: shieringo（英数字・ハイフン・アンダースコア、最大20文字）",
+            label_visibility="collapsed",
+        )
+    with col_b:
+        go = st.button("設定", type="primary", use_container_width=True)
+    if go and uname:
+        slug = uname.strip().lower()
+        if re.match(r'^[a-zA-Z0-9_-]{1,20}$', slug):
+            st.query_params["u"] = slug
+            st.rerun()
+        else:
+            st.error("英数字・ハイフン・アンダースコアのみ使えます（最大20文字）")
+    st.stop()
+
+# URL params からブックマーク・デフォルトを読み込む
+bm_str = st.query_params.get("bm", "")
+bookmarks = [b for b in bm_str.split(",") if b] if bm_str else []
+default_code = st.query_params.get("def", "")
 
 # ヘッダー
 st.markdown(
@@ -623,10 +622,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.caption(f"更新: {datetime.now(JST).strftime('%m/%d %H:%M')} JST　|　METAR（30分キャッシュ）")
-
-# 初回ユーザー向けメッセージ
-if is_new:
-    st.info("📌 初回アクセスです。このページのURLをブックマークしておいてください。次回から設定が引き継がれます。")
 
 # Bookmarkセクション
 if bookmarks:
@@ -702,14 +697,16 @@ if selected_code:
             else:
                 if selected_code not in bookmarks:
                     bookmarks.append(selected_code)
-            user_settings["bookmarks"] = bookmarks
-            save_user_settings(user_id, user_settings)
+            st.query_params["bm"] = ",".join(bookmarks)
             st.rerun()
 
     with col2:
         if st.button("🏠 解除" if is_default else "🏠 デフォルト", use_container_width=True):
-            user_settings["default_code"] = "" if is_default else selected_code
-            save_user_settings(user_id, user_settings)
+            if is_default:
+                if "def" in st.query_params:
+                    del st.query_params["def"]
+            else:
+                st.query_params["def"] = selected_code
             st.rerun()
 
     # 爆焼け予報
