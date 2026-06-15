@@ -666,19 +666,26 @@ st.markdown("""
     .bk-verdict { font-size:1.15em; font-weight:bold; margin-bottom:8px; }
     .bk-cond    { font-size:0.83em; color:#888; }
 
-    /* ── 底部右のStreamlit UI を上書き非表示 ── */
-    #af-cover-br {
+    /* ── 底部右のStreamlit UIをbody::afterで上書き非表示 ── */
+    /* body::afterはStreamlitのReact transformコンテナ外なのでfixedが正しく機能する */
+    body::after {
+        content: '' !important;
         position: fixed !important;
         bottom: 0 !important;
         right: 0 !important;
         width: 220px !important;
-        height: 80px !important;
+        height: 72px !important;
         background: #0e1117 !important;
         z-index: 2147483647 !important;
         pointer-events: none !important;
+        display: block !important;
     }
+    /* Viewer Badge（Streamlit Community Cloud無料枠のバッジ）*/
+    [data-testid="viewerBadge"] { display: none !important; }
+    [data-testid="stViewerBadge"] { display: none !important; }
+    [class*="viewerBadge"] { display: none !important; }
+    [class*="ViewerBadge"] { display: none !important; }
 </style>
-<div id="af-cover-br"></div>
 """, unsafe_allow_html=True)
 
 # ユーザーID管理
