@@ -568,6 +568,11 @@ st.markdown("""
 <style>
     header[data-testid="stHeader"] { display: none !important; }
     footer { display: none !important; }
+    [data-testid="stStatusWidget"] { display: none !important; }
+    [data-testid="stToolbar"] { display: none !important; }
+    [data-testid="manage-app-button"] { display: none !important; }
+    [data-testid="stDeployButton"] { display: none !important; }
+    #MainMenu { display: none !important; }
     .block-container { padding-top: 1rem !important; }
     .main > div { padding: 1rem 0.6rem; }
     h1 a, h2 a, h3 a, h4 a { display: none !important; }
