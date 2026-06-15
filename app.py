@@ -665,7 +665,20 @@ st.markdown("""
     .bk-bar-fill{ height:8px; border-radius:4px; }
     .bk-verdict { font-size:1.15em; font-weight:bold; margin-bottom:8px; }
     .bk-cond    { font-size:0.83em; color:#888; }
+
+    /* ── 底部右のStreamlit UI を上書き非表示 ── */
+    #af-cover-br {
+        position: fixed !important;
+        bottom: 0 !important;
+        right: 0 !important;
+        width: 220px !important;
+        height: 80px !important;
+        background: #0e1117 !important;
+        z-index: 2147483647 !important;
+        pointer-events: none !important;
+    }
 </style>
+<div id="af-cover-br"></div>
 """, unsafe_allow_html=True)
 
 # ユーザーID管理
@@ -728,7 +741,7 @@ st.markdown(
     f'Airport Forcast</h2>',
     unsafe_allow_html=True,
 )
-st.caption(f"更新: {datetime.now(JST).strftime('%m/%d %H:%M')} JST　|　METAR（30分キャッシュ）")
+st.caption(f"更新: {datetime.now(JST).strftime('%m/%d %H:%M')} JST　|　METAR（30分キャッシュ）　|　v0615")
 
 # Bookmarkセクション
 if bookmarks:
