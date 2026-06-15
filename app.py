@@ -7,6 +7,7 @@ import io
 import math
 import re
 import requests
+from pathlib import Path
 import streamlit as st
 from datetime import datetime, timezone, timedelta
 from PIL import Image, ImageDraw, ImageFilter
@@ -79,6 +80,14 @@ _ICON_IMG = _make_icon()
 _buf = io.BytesIO()
 _ICON_IMG.convert("RGB").save(_buf, format="PNG")
 _ICON_B64 = base64.b64encode(_buf.getvalue()).decode()
+
+# apple-touch-icon 用に静的ファイルとして保存（iOS ホーム画面アイコン）
+_static_dir = Path(__file__).parent / "static"
+_static_dir.mkdir(exist_ok=True)
+_touch_icon_path = _static_dir / "apple-touch-icon.png"
+if not _touch_icon_path.exists():
+    _ICON_IMG.save(str(_touch_icon_path), format="PNG")
+
 AIRPORT_COORDS = {
     "RJCO": (43.116, 141.381), "RJEC": (43.671, 142.448),
     "RJCK": (43.041, 144.193), "RJCB": (43.880, 144.164),
@@ -532,13 +541,17 @@ st.set_page_config(
 )
 
 # apple-touch-icon（iOSホーム画面追加時のアイコン）をJSで<head>に注入
-st.markdown(f"""<script>
-(function(){{
+st.markdown("""<script>
+(function(){
+  document.querySelectorAll('link[rel~="apple-touch-icon"]').forEach(function(el){
+    el.parentNode.removeChild(el);
+  });
   var l=document.createElement('link');
   l.rel='apple-touch-icon';
-  l.href='data:image/png;base64,{_ICON_B64}';
+  l.sizes='180x180';
+  l.href='/app/static/apple-touch-icon.png';
   document.head.appendChild(l);
-}})();
+})();
 </script>""", unsafe_allow_html=True)
 
 st.markdown("""
