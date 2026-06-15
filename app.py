@@ -81,12 +81,17 @@ _buf = io.BytesIO()
 _ICON_IMG.convert("RGB").save(_buf, format="PNG")
 _ICON_B64 = base64.b64encode(_buf.getvalue()).decode()
 
-# apple-touch-icon 用に静的ファイルとして保存（iOS ホーム画面アイコン）
+# 静的ファイルを生成（iOS ホーム画面アイコン + Web App Manifest）
 _static_dir = Path(__file__).parent / "static"
 _static_dir.mkdir(exist_ok=True)
-_touch_icon_path = _static_dir / "apple-touch-icon.png"
-if not _touch_icon_path.exists():
-    _ICON_IMG.save(str(_touch_icon_path), format="PNG")
+_ICON_IMG.save(str(_static_dir / "apple-touch-icon.png"), format="PNG")
+(_static_dir / "manifest.json").write_text(
+    '{"name":"Airport Forcast","short_name":"Airport",'
+    '"start_url":".","display":"standalone",'
+    '"background_color":"#12122a","theme_color":"#12122a",'
+    '"icons":[{"src":"/app/static/apple-touch-icon.png","sizes":"180x180","type":"image/png"}]}',
+    encoding="utf-8",
+)
 
 AIRPORT_COORDS = {
     "RJCO": (43.116, 141.381), "RJEC": (43.671, 142.448),
@@ -543,14 +548,32 @@ st.set_page_config(
 # apple-touch-icon（iOSホーム画面追加時のアイコン）をJSで<head>に注入
 st.markdown("""<script>
 (function(){
+  // ── URL永続化（localStorage）──
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('u')) {
+      localStorage.setItem('afurl', window.location.href);
+    } else {
+      var saved = localStorage.getItem('afurl');
+      if (saved) { window.location.replace(saved); return; }
+    }
+  } catch(e) {}
+  // ── apple-touch-icon ──
   document.querySelectorAll('link[rel~="apple-touch-icon"]').forEach(function(el){
     el.parentNode.removeChild(el);
   });
-  var l=document.createElement('link');
-  l.rel='apple-touch-icon';
-  l.sizes='180x180';
-  l.href='/app/static/apple-touch-icon.png';
+  var l = document.createElement('link');
+  l.rel = 'apple-touch-icon';
+  l.sizes = '180x180';
+  l.href = '/app/static/apple-touch-icon.png?v=3';
   document.head.appendChild(l);
+  // ── Web App Manifest ──
+  if (!document.querySelector('link[rel="manifest"]')) {
+    var m = document.createElement('link');
+    m.rel = 'manifest';
+    m.href = '/app/static/manifest.json';
+    document.head.appendChild(m);
+  }
 })();
 </script>""", unsafe_allow_html=True)
 
