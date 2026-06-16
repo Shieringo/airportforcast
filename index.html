@@ -60,27 +60,39 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
 .card{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.4)}
 .card h2{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text);padding-bottom:10px;border-bottom:1px solid var(--border)}
 
-/* Vapor / One4 status block */
-.status-block{display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--bg);border-radius:8px;margin-bottom:14px}
-.status-emoji{font-size:36px;line-height:1;flex-shrink:0}
-.status-info .status-label{font-size:18px;font-weight:700;line-height:1.2}
-.status-info .status-desc{font-size:12px;color:var(--sub);margin-top:4px;line-height:1.6}
+/* ── Streamlit-style 爆焼けカード ── */
+.bakuyake-card{border-radius:18px;padding:22px 20px 16px;margin:8px 0;border-left:7px solid #555;background:#1a1a2e}
+.bakuyake-card.hot {border-left-color:#ff6b35;background:#2a1200}
+.bakuyake-card.warm{border-left-color:#f39c12;background:#271c08}
+.bakuyake-card.mild{border-left-color:#8e9eab;background:#151c22}
+.bakuyake-card.cool{border-left-color:#445566;background:#111}
+.bk-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.bk-city{font-size:1.4em;font-weight:bold;color:#fff}
+.bk-subtitle{font-size:0.82em;color:#aaa;margin-top:2px}
+.bk-score{font-size:2.6em;font-weight:bold;color:#fff;line-height:1.1}
+.bk-score-unit{font-size:0.5em;color:#888}
+.bk-bar-wrap{margin:8px 0 14px;background:#333;border-radius:4px;height:8px}
+.bk-bar-fill{height:8px;border-radius:4px}
+.bk-verdict{font-size:1.15em;font-weight:bold;margin-bottom:8px}
+.bk-cond{font-size:0.83em;color:#888}
+/* ミニカード行 */
+.bk-mini-row{display:flex;gap:6px;width:100%;box-sizing:border-box;padding:6px 0 2px}
+.bk-mini{flex:1;text-align:center;padding:10px 4px 8px;border-radius:12px}
+.bk-mini-date{font-size:0.7em;color:#999;margin-bottom:4px;line-height:1.4}
+.bk-mini-score{font-size:1.4em;font-weight:bold;color:#fff;line-height:1}
+.bk-mini-bar{height:3px;border-radius:2px;margin:5px 6px 0}
 
-/* Detail rows */
-.dr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
-.dr:last-child{border-bottom:none}
-.dr span:first-child{color:var(--sub)}
-.dr span:last-child{font-weight:600}
-
-/* 爆焼けtable */
-.bk-table{width:100%;border-collapse:collapse}
-.bk-table th{text-align:left;font-size:11px;color:var(--sub);padding:0 8px 8px 0;font-weight:500}
-.bk-table td{padding:8px 8px 8px 0;font-size:13px;border-bottom:1px solid var(--border)}
-.bk-table tr:last-child td{border-bottom:none}
-.sc{font-size:16px;font-weight:800}
-.sc-hi{color:var(--red)}
-.sc-md{color:var(--yellow)}
-.sc-lo{color:var(--sub)}
+/* ── Streamlit-style ベイパーカード ── */
+.airport-card{border-radius:18px;padding:22px 20px 16px;margin:8px 0;border-left:7px solid #555;background:#1a1a2e}
+.airport-card.green {border-left-color:#2ecc71;background:#0b2118}
+.airport-card.yellow{border-left-color:#f39c12;background:#271c08}
+.airport-card.red   {border-left-color:#e74c3c;background:#270b0b}
+.ap-name{font-size:1.6em;font-weight:bold;color:#fff}
+.vapor-code{font-size:0.82em;color:#777;margin-top:2px}
+.sp-label{font-size:0.72em;color:#999}
+.sp-val{font-size:2.6em;font-weight:bold;color:#fff;line-height:1.1}
+.judgment{font-size:1.15em;font-weight:bold;margin-top:14px}
+.detail{font-size:0.83em;color:#888;margin-top:8px}
 
 /* Moon */
 .moon-scroll{overflow-x:auto;scrollbar-width:none}
@@ -118,22 +130,6 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
 
 /* Error */
 .err{color:var(--red);font-size:13px;padding:8px 0}
-
-/* 爆焼け 当日大カード */
-.bk-today{background:var(--bg);border-radius:10px;padding:14px;margin-bottom:14px}
-.bk-today-top{display:flex;align-items:center;gap:16px}
-.bk-today-num{font-size:56px;font-weight:900;line-height:1;min-width:80px}
-.bk-today-right .bk-emoji{font-size:32px;line-height:1}
-.bk-today-right .bk-label{font-size:16px;font-weight:700;margin-top:4px}
-.bk-today-sub{font-size:12px;color:var(--sub);margin-top:4px}
-
-/* スコアゲージ */
-.gauge{height:10px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden;margin:12px 0 4px}
-.gauge-fill{height:100%;border-radius:5px;transition:width .6s cubic-bezier(.4,0,.2,1)}
-.g-hi{background:linear-gradient(90deg,#ff9500,#ff6b6b)}
-.g-md{background:linear-gradient(90deg,#fcc419,#ff9500)}
-.g-lo{background:linear-gradient(90deg,#74c0fc,#4c6ef5)}
-.g-no{background:#3a4566}
 
 /* 管制塔ロゴ */
 .tower-svg{width:22px;height:22px;flex-shrink:0}
@@ -404,27 +400,26 @@ function renderVapor(m){
   const t=m.temp,d=m.dewp;
   if(t==null||d==null){el.innerHTML='<p class="err">⚠️ 気温・露点データがありません</p>';return;}
   const sp=Math.round((t-d)*10)/10;
-  let emoji,label,desc;
-  if(sp<=1.0){emoji='✅';label='ほぼ確実';desc=`スプレッドが${sp}°Cと非常に低く、ベイパーが発生する可能性は高いです。`;}
-  else if(sp<=3.0){emoji='⚡';label='可能性あり';desc=`スプレッドが${sp}°Cで、条件が整えばベイパーが見えるかもしれません。`;}
-  else{emoji='❌';label='やや厳しい';desc=`スプレッドが${sp}°Cで、現状ではベイパーの発生は難しそうです。`;}
-  const obsT=fmtJST(m.reportTime);
-  const wdir=m.wdir==null?'—':(m.wdir==='VRB'?'VRB':`${m.wdir}°`);
-  const wspd=m.wspd!=null?`${m.wspd}kt`:'—';
-  const gust=m.wgst?` (G${m.wgst}kt)`:'';
+  let color,cls,judgment;
+  if(sp<=1.0){color='#2ecc71';cls='green';judgment='✅ ほぼ確実に出る';}
+  else if(sp<=3.0){color='#f39c12';cls='yellow';judgment='⚡ 出る可能性あり';}
+  else{color='#e74c3c';cls='red';judgment='❌ まず出ない';}
+  const name=AIRPORTS[curAP]||curAP;
   el.innerHTML=`
-    <div class="status-block">
-      <div class="status-emoji">${emoji}</div>
-      <div class="status-info">
-        <div class="status-label">${label}</div>
-        <div class="status-desc">${desc}</div>
-      </div>
+<div class="airport-card ${cls}">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div>
+      <div class="ap-name">${name}</div>
+      <div class="vapor-code">${curAP}</div>
     </div>
-    <div class="dr"><span>気温</span><span>${t}°C</span></div>
-    <div class="dr"><span>露点温度</span><span>${d}°C</span></div>
-    <div class="dr"><span>スプレッド</span><span>${sp}°C</span></div>
-    <div class="dr"><span>風</span><span>${wdir} / ${wspd}${gust}</span></div>
-    <div class="dr"><span>観測時刻</span><span>${obsT}</span></div>`;
+    <div style="text-align:right;">
+      <div class="sp-label">スプレッド</div>
+      <div class="sp-val">${sp}°</div>
+    </div>
+  </div>
+  <div class="judgment" style="color:${color};">${judgment}</div>
+  <div class="detail">気温 ${t}°C　／　露点 ${d}°C</div>
+</div>`;
 }
 
 // ===== BAKUYAKE SCORE =====
@@ -442,12 +437,12 @@ function calcBK(c){
 
 // ===== RENDER BAKUYAKE =====
 function bkMeta(sc){
-  if(sc>=70)return{emoji:'🔥',label:'最高の条件',gcls:'g-hi',scls:'sc-hi'};
-  if(sc>=50)return{emoji:'🌅',label:'期待できる',gcls:'g-md',scls:'sc-md'};
-  if(sc>=30)return{emoji:'🌤',label:'まずまず',gcls:'g-lo',scls:''};
-  return{emoji:'😐',label:'期待薄',gcls:'g-no',scls:'sc-lo'};
+  if(sc>=70)return{emoji:'🔥',label:'爆焼けチャンス！',color:'#ff6b35',cls:'hot',bar:'#ff6b35',bg:'#2a1200',bdr:'#ff6b35'};
+  if(sc>=50)return{emoji:'🌅',label:'期待できる',color:'#f39c12',cls:'warm',bar:'#f39c12',bg:'#271c08',bdr:'#f39c12'};
+  if(sc>=30)return{emoji:'🌤',label:'少し期待',color:'#8e9eab',cls:'mild',bar:'#8e9eab',bg:'#151c22',bdr:'#8e9eab'};
+  return{emoji:'😐',label:'今日は厳しいかも',color:'#556677',cls:'cool',bar:'#445566',bg:'#111',bdr:'#445566'};
 }
-function getBkData(daily,hr,i){
+function getBkData(daily,hr,i,withCond){
   const date=daily.time[i];
   const ss=daily.sunset[i];if(!ss)return null;
   const ssHour=parseInt(ss.substring(11,13));
@@ -456,44 +451,57 @@ function getBkData(daily,hr,i){
   const idx=hr.time.indexOf(target);if(idx<0)return null;
   let p3=0;
   for(let j=Math.max(0,idx-1);j<=Math.min(hr.time.length-1,idx+1);j++) p3+=(hr.precipitation[j]||0);
-  const c={cloud:hr.cloud_cover[idx]||0,cloud_high:hr.cloud_cover_high[idx]||0,
+  const cond={cloud:hr.cloud_cover[idx]||0,cloud_high:hr.cloud_cover_high[idx]||0,
     humidity:hr.relative_humidity_2m[idx]||50,vis_m:hr.visibility[idx]||10000,precip3:p3};
-  return{date,ssMin,score:calcBK(c)};
+  const score=calcBK(cond);
+  return withCond?{date,ssMin,score,cond}:{date,ssMin,score};
 }
 function renderBakuyake(fc){
   const el=document.getElementById('bk-body');
   if(!fc||!fc.daily||!fc.hourly){el.innerHTML='<p class="err">⚠️ 予報データを取得できませんでした</p>';return;}
   const daily=fc.daily,hr=fc.hourly;
-  const days=[];
-  for(let i=0;i<Math.min(7,daily.time.length);i++){
-    const d=getBkData(daily,hr,i);if(d)days.push(d);
-  }
-  if(!days.length){el.innerHTML='<p class="err">⚠️ データなし</p>';return;}
 
-  // 当日 → 大カード
-  const today=days[0];
+  // 当日 → Streamlit大カード
+  const today=getBkData(daily,hr,0,true);
+  if(!today){el.innerHTML='<p class="err">⚠️ データなし</p>';return;}
   const tm=bkMeta(today.score);
-  let html=`<div class="bk-today">
-    <div class="bk-today-top">
-      <div class="bk-today-num ${tm.scls}">${today.score}</div>
-      <div class="bk-today-right">
-        <div class="bk-emoji">${tm.emoji}</div>
-        <div class="bk-label">${tm.label}</div>
-        <div class="bk-today-sub">今日の日没 ${today.ssMin} / ${fmtDate(today.date)}</div>
-      </div>
+  const name=AIRPORTS[curAP]||curAP;
+  const c=today.cond;
+  const visKm=Math.round(c.vis_m/1000);
+  const rainTxt=c.precip3>=0.5?'　🌂 雨上がり':'';
+  let html=`<div class="bakuyake-card ${tm.cls}">
+  <div class="bk-header">
+    <div>
+      <div class="bk-city">${name}</div>
+      <div class="bk-subtitle">日没 ${today.ssMin}</div>
     </div>
-    <div class="gauge"><div class="gauge-fill ${tm.gcls}" style="width:${today.score}%"></div></div>
-  </div>`;
+    <div style="text-align:right;">
+      <div style="font-size:0.72em;color:#999;">爆焼けスコア</div>
+      <div class="bk-score">${today.score}<span class="bk-score-unit"> / 100</span></div>
+    </div>
+  </div>
+  <div class="bk-bar-wrap"><div class="bk-bar-fill" style="width:${today.score}%;background:${tm.bar};"></div></div>
+  <div class="bk-verdict" style="color:${tm.color};">${tm.emoji} ${tm.label}</div>
+  <div class="bk-cond">雲量 ${c.cloud}%　高層雲 ${c.cloud_high}%　湿度 ${c.humidity}%　視程 ${visKm}km${rainTxt}</div>
+</div>`;
 
-  // 残り6日 → テーブル
-  if(days.length>1){
-    html+=`<table class="bk-table"><thead><tr><th>日付</th><th>日没</th><th>スコア</th><th></th></tr></thead><tbody>`;
-    for(const d of days.slice(1)){
-      const m=bkMeta(d.score);
-      html+=`<tr><td>${fmtDate(d.date)}</td><td>${d.ssMin}</td><td class="sc ${m.scls}">${d.score}</td><td>${m.emoji}</td></tr>`;
-    }
-    html+=`</tbody></table>`;
+  // 翌日〜6日 → ミニカード行
+  const miniItems=[];
+  for(let i=1;i<Math.min(7,daily.time.length);i++){
+    const d=getBkData(daily,hr,i);if(!d)continue;
+    const m=bkMeta(d.score);
+    const lbl=i===1?'明日':`${parseInt(d.date.substring(5,7))}/${parseInt(d.date.substring(8,10))}`;
+    const dt=new Date(d.date+'T00:00:00');
+    const wd=DAYS[dt.getDay()];
+    miniItems.push(
+      `<div class="bk-mini" style="background:${m.bg};border:1px solid ${m.bdr};">
+        <div class="bk-mini-date">${lbl}<br><span style="color:#666;font-size:0.9em;">(${wd})</span></div>
+        <div class="bk-mini-score">${d.score}</div>
+        <div class="bk-mini-bar" style="background:${m.bdr};"></div>
+      </div>`
+    );
   }
+  if(miniItems.length) html+=`<div class="bk-mini-row">${miniItems.join('')}</div>`;
   el.innerHTML=html;
 }
 
@@ -502,13 +510,14 @@ function renderMoon(code){
   const el=document.getElementById('moon-body');
   if(typeof SunCalc==='undefined'){el.innerHTML='<p class="err">⚠️ SunCalcライブラリの読み込みに失敗しました</p>';return;}
   const[lat,lon]=COORDS[code]||[35,135];
-  const today=new Date();
-  let html='<div class="moon-scroll"><div class="moon-grid">';
+  const now=new Date();
+  const moonData=[];
   for(let i=0;i<7;i++){
-    const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i,12,0,0);
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i,12,0,0);
     const ill=SunCalc.getMoonIllumination(d);
     const ph=ill.phase;
     const age=ph*29.53;
+    const illumination=Math.round((1-Math.cos(2*Math.PI*ph))/2*100);
     const pname=moonName(age);
     const mt=SunCalc.getMoonTimes(d,lat,lon);
     let riseStr='—',azStr='—';
@@ -519,15 +528,41 @@ function renderMoon(code){
       const az=((pos.azimuth*180/Math.PI)+180+360)%360;
       azStr=Math.round(az)+'° '+azLabel(az);
     }
-    html+=`<div class="moon-day">
-      <div class="moon-date">${fmtDate2(d)}</div>
-      <canvas class="moon-canvas" width="56" height="56" data-ph="${ph}"></canvas>
-      <div class="moon-pname">${pname}</div>
-      <div class="moon-rise">🌕 ${riseStr}</div>
-      <div class="moon-az">⬆ ${azStr}</div>
-    </div>`;
+    moonData.push({d,ph,pname,illumination,riseStr,azStr});
   }
-  html+='</div></div>';
+
+  // 今日の大カード
+  const t=moonData[0];
+  const name=AIRPORTS[code]||code;
+  let html=`
+<div style="border-radius:18px;padding:22px 20px 16px;margin:8px 0;border-left:7px solid #b8860b;background:#1a1a0e;">
+  <div style="font-size:0.78em;color:#999;margin-bottom:10px;">${name}</div>
+  <div style="display:flex;align-items:center;gap:20px;">
+    <canvas class="moon-canvas" width="100" height="100" data-ph="${t.ph}" style="flex-shrink:0;"></canvas>
+    <div>
+      <div style="font-size:1.6em;font-weight:bold;color:#fff;">${t.pname}</div>
+      <div style="font-size:1.0em;color:#ccc;margin-top:6px;">月齢 ${Math.round(t.ph*29.53*10)/10} 日　輝面比 ${t.illumination}%</div>
+      <div style="font-size:0.9em;color:#aaa;margin-top:6px;">🌙 月の出 ${t.riseStr}　方角 ${t.azStr}</div>
+    </div>
+  </div>
+</div>`;
+
+  // 翌日〜6日のミニカード行
+  const miniItems=moonData.slice(1).map((m,i)=>{
+    const lbl=i===0?'明日':`${m.d.getMonth()+1}/${m.d.getDate()}`;
+    const wd=['日','月','火','水','木','金','土'][m.d.getDay()];
+    return `<div style="flex:1;min-width:0;text-align:center;padding:10px 4px 8px;border-radius:12px;background:#1a1a0e;border:1px solid #b8860b;">
+      <div style="font-size:0.7em;color:#999;margin-bottom:4px;line-height:1.4;">${lbl}<br><span style="color:#666;font-size:0.9em;">(${wd})</span></div>
+      <div style="display:flex;justify-content:center;margin-bottom:4px;">
+        <canvas class="moon-canvas" width="36" height="36" data-ph="${m.ph}"></canvas>
+      </div>
+      <div style="font-size:0.8em;font-weight:bold;color:#fff;white-space:nowrap;">${m.pname}</div>
+      <div style="font-size:0.68em;color:#888;">${m.illumination}%</div>
+      <div style="font-size:0.65em;color:#777;margin-top:2px;">${m.riseStr}</div>
+    </div>`;
+  });
+  html+=`<div style="display:flex;gap:6px;width:100%;box-sizing:border-box;padding:6px 0 2px;">${miniItems.join('')}</div>`;
+
   el.innerHTML=html;
   el.querySelectorAll('.moon-canvas').forEach(cv=>drawMoon(cv,parseFloat(cv.dataset.ph)));
 }
@@ -567,23 +602,42 @@ function renderOne4(m){
   const tw=ws*Math.cos(Math.PI/180*(wd-140));
   const twR=Math.round(tw*10)/10;
   const prob=Math.min(100,Math.max(0,Math.round(twR*8)));
-  let emoji,label,desc;
-  if(twR>=12){emoji='🔴';label='ランチェンゾーン';desc='ランウェイチェンジの可能性が高い状況です。';}
-  else if(twR>=9){emoji='🟡';label='接近中';desc='ランチェンに近づいています。動向を注視してください。';}
-  else{emoji='🟢';label='RWY32';desc='RWY32での通常運用が継続されています。';}
+  let cardColor,bgColor,verdict,rancenLabel='';
+  if(twR>=12){
+    cardColor='#e74c3c';bgColor='#270b0b';
+    verdict='🔴 ランチェンゾーン — 状態が続けば RWY14 の可能性';
+    rancenLabel='　ランチェンゾーン';
+  }else if(twR>=9){
+    cardColor='#f39c12';bgColor='#271c08';
+    verdict='🟡 ランチェンゾーン接近中';
+    rancenLabel='　ランチェンゾーン';
+  }else{
+    cardColor='#2ecc71';bgColor='#0b2118';
+    verdict='🟢 RWY32 通常運用';
+  }
+  const compassDirs=['北','北北東','北東','東北東','東','東南東','南東','南南東','南','南南西','南西','西南西','西','西北西','北西','北北西'];
+  const compass=compassDirs[Math.round(wd/22.5)%16]||'';
+  const gust=m.wgst?`（最大 ${m.wgst}kt）`:'';
+  const windInfo=`${wd}° ${compass} / ${ws}kt${gust?' '+gust:''}`;
   el.innerHTML=`
-    <div class="status-block">
-      <div class="status-emoji">${emoji}</div>
-      <div class="status-info">
-        <div class="status-label">${label}</div>
-        <div class="status-desc">${desc}</div>
-      </div>
+<div style="border-radius:18px;padding:18px 20px;margin:8px 0;border-left:7px solid ${cardColor};background:${bgColor};">
+  <div style="font-size:0.78em;color:#999;margin-bottom:8px;">✈ RWY14 運用可能性 — 大阪国際空港</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div>
+      <div style="font-size:1.3em;font-weight:bold;color:#fff;">${windInfo}</div>
+      <div style="font-size:1.2em;font-weight:bold;color:#ccc;margin-top:6px;">追い風成分: ${twR}${rancenLabel}</div>
     </div>
-    <div class="dr"><span>風向</span><span>${wd}°</span></div>
-    <div class="dr"><span>風速</span><span>${ws}kt</span></div>
-    <div class="dr"><span>追い風成分（RWY14）</span><span>${twR}</span></div>
-    <div class="dr"><span>ランチェン確率</span><span>${prob}%</span></div>`;
-}
+    <div style="text-align:right;">
+      <div style="font-size:0.72em;color:#999;">ワンフォースコア</div>
+      <div style="font-size:2.6em;font-weight:bold;color:#fff;line-height:1.1;">${prob}<span style="font-size:0.5em;color:#888;">%</span></div>
+    </div>
+  </div>
+  <div style="height:8px;background:#333;border-radius:4px;margin:10px 0 8px;">
+    <div style="height:8px;border-radius:4px;background:${cardColor};width:${prob}%;"></div>
+  </div>
+  <div style="font-size:1.1em;font-weight:bold;color:${cardColor};">${verdict}</div>
+  <div style="font-size:0.75em;color:#666;margin-top:8px;">追い風成分が 9.0〜11.9 でランチェン可能性あり、12.0 以上が断続的に続く場合に RWY14 運用になる可能性が大きくなります。</div>
+</div>`;
 
 // ===== HELPERS =====
 const DAYS=['日','月','火','水','木','金','土'];
