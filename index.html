@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Airport">
+<meta name="theme-color" content="#0e1117">
+<title>Airport Forcast</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e1117;--card:#1a1d27;--border:#2d3147;
+  --accent:#4c6ef5;--text:#fafafa;--sub:#8892b0;
+  --red:#ff6b6b;--yellow:#fcc419;--green:#51cf66
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI',sans-serif;min-height:100vh;font-size:14px;line-height:1.5}
+
+/* Setup */
+#setup-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.setup-box{background:var(--card);border-radius:16px;padding:40px 28px;max-width:380px;width:100%;text-align:center;border:1px solid var(--border)}
+.setup-icon{font-size:48px;margin-bottom:12px}
+.setup-box h1{font-size:22px;margin-bottom:10px}
+.setup-box p{color:var(--sub);margin-bottom:20px;font-size:13px;line-height:1.7}
+.setup-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:8px;font-size:16px;margin-bottom:14px;outline:none}
+.setup-input:focus{border-color:var(--accent)}
+.setup-btn{width:100%;background:var(--accent);color:#fff;border:none;padding:13px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:700}
+.setup-btn:hover{opacity:.9}
+.setup-note{color:var(--sub);font-size:11px;margin-top:14px;line-height:1.6}
+
+/* App */
+#app{display:none}
+
+/* Header */
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.h-left{display:flex;align-items:center;gap:8px}
+.app-icon{font-size:20px}
+.app-title{font-size:17px;font-weight:800;letter-spacing:-.3px}
+.h-right{display:flex;align-items:center;gap:10px}
+#user-label{color:var(--sub);font-size:12px}
+.icon-btn{background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:2px;line-height:1;display:flex;align-items:center}
+
+/* Airport Selector */
+.airport-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--border);scrollbar-width:none}
+.airport-bar::-webkit-scrollbar{display:none}
+.bm-btn{background:var(--bg);border:1px solid var(--border);color:var(--sub);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;font-size:12px;line-height:1.4;text-align:center;min-width:72px;transition:all .15s;flex-shrink:0}
+.bm-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.bm-btn small{font-size:10px;opacity:.8;display:block}
+.add-btn{background:none;border:1px dashed var(--border);color:var(--sub);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;font-size:12px;flex-shrink:0}
+.add-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Loading */
+#loading{text-align:center;padding:32px;color:var(--sub)}
+
+/* Cards */
+main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-bottom:max(20px,env(safe-area-inset-bottom))}
+.card{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border)}
+.card h2{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text)}
+
+/* Vapor / One4 status block */
+.status-block{display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--bg);border-radius:8px;margin-bottom:14px}
+.status-emoji{font-size:36px;line-height:1;flex-shrink:0}
+.status-info .status-label{font-size:18px;font-weight:700;line-height:1.2}
+.status-info .status-desc{font-size:12px;color:var(--sub);margin-top:4px;line-height:1.6}
+
+/* Detail rows */
+.dr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.dr:last-child{border-bottom:none}
+.dr span:first-child{color:var(--sub)}
+.dr span:last-child{font-weight:600}
+
+/* 爆焼けtable */
+.bk-table{width:100%;border-collapse:collapse}
+.bk-table th{text-align:left;font-size:11px;color:var(--sub);padding:0 8px 8px 0;font-weight:500}
+.bk-table td{padding:8px 8px 8px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.bk-table tr:last-child td{border-bottom:none}
+.sc{font-size:16px;font-weight:800}
+.sc-hi{color:var(--red)}
+.sc-md{color:var(--yellow)}
+.sc-lo{color:var(--sub)}
+
+/* Moon */
+.moon-scroll{overflow-x:auto;scrollbar-width:none}
+.moon-scroll::-webkit-scrollbar{display:none}
+.moon-grid{display:flex;gap:8px;min-width:max-content}
+.moon-day{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;background:var(--bg);border-radius:8px;min-width:76px}
+.moon-date{font-size:11px;color:var(--sub);font-weight:600}
+.moon-canvas{border-radius:50%}
+.moon-pname{font-size:10px;text-align:center;min-height:28px;display:flex;align-items:center;justify-content:center;line-height:1.3}
+.moon-rise{font-size:10px;color:var(--sub)}
+.moon-az{font-size:10px;color:var(--sub)}
+
+/* Modals */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--card);border-radius:20px 20px 0 0;padding:20px 20px 0;width:100%;max-width:600px;max-height:85vh;display:flex;flex-direction:column;border:1px solid var(--border);border-bottom:none}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-shrink:0}
+.modal-head h3{font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;line-height:1;padding:0}
+.modal-body{overflow-y:auto;flex:1;padding-bottom:env(safe-area-inset-bottom,20px)}
+.region-label{font-size:11px;font-weight:700;color:var(--sub);padding:12px 0 4px;text-transform:uppercase;letter-spacing:.5px}
+.ap-item{display:flex;align-items:center;gap:10px;padding:10px 6px;border-radius:8px;cursor:pointer;font-size:13px}
+.ap-item:hover{background:var(--bg)}
+.ap-item input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer;flex-shrink:0}
+.ap-code{font-weight:700;font-family:monospace;min-width:44px;font-size:14px}
+.def-badge{background:var(--accent);color:#fff;font-size:9px;padding:1px 6px;border-radius:10px;margin-left:4px}
+.modal-save{width:100%;background:var(--accent);color:#fff;border:none;padding:13px;border-radius:10px;font-size:15px;cursor:pointer;font-weight:700;flex-shrink:0;margin:12px 0}
+
+/* Settings */
+.s-label{font-size:11px;color:var(--sub);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.s-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;margin-bottom:16px}
+.s-input:focus{border-color:var(--accent)}
+.share-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--sub);word-break:break-all;cursor:pointer;margin-bottom:16px}
+.share-box:hover{border-color:var(--accent)}
+
+/* Error */
+.err{color:var(--red);font-size:13px;padding:8px 0}
+</style>
+</head>
+<body>
+
+<!-- Setup -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <div class="setup-icon">🗼</div>
+    <h1>Airport Forcast</h1>
+    <p>ようこそ！まずお名前（識別名）を入力してください。<br>ホーム画面に追加すると次回から自動ログインします。</p>
+    <input class="setup-input" id="setup-name" type="text" placeholder="例: taro, yuki123" maxlength="20"
+           onkeydown="if(event.key==='Enter')doSetup()">
+    <button class="setup-btn" onclick="doSetup()">はじめる ✈️</button>
+    <p class="setup-note">英数字・ハイフン・アンダースコアのみ使えます<br>（名前はURLに含まれます）</p>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <header>
+    <div class="h-left">
+      <span class="app-icon">🗼</span>
+      <span class="app-title">Airport Forcast</span>
+    </div>
+    <div class="h-right">
+      <span id="user-label"></span>
+      <button class="icon-btn" onclick="openSettings()">⚙️</button>
+    </div>
+  </header>
+
+  <div class="airport-bar">
+    <div id="bm-buttons" style="display:contents"></div>
+    <button class="add-btn" onclick="openPicker()">＋ 追加</button>
+  </div>
+
+  <div id="loading" style="display:none">📡 データ取得中...</div>
+
+  <main id="cards" style="opacity:1;transition:opacity .2s">
+    <section class="card" id="vapor-card">
+      <h2>🌫️ ベイパー予報</h2>
+      <div id="vapor-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
+    </section>
+
+    <section class="card" id="bk-card">
+      <h2>🌅 爆焼け予報（7日間）</h2>
+      <div id="bk-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
+    </section>
+
+    <section class="card" id="moon-card">
+      <h2>🌙 月情報（7日間）</h2>
+      <div id="moon-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
+    </section>
+
+    <section class="card" id="one4-card" style="display:none">
+      <h2>✈️ ワンフォー予報</h2>
+      <div id="one4-body"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Airport Picker Modal -->
+<div class="modal-overlay" id="picker-modal" onclick="if(event.target===this)closePicker()">
+  <div class="modal-sheet">
+    <div class="modal-head" style="flex-shrink:0;padding-bottom:0">
+      <h3>✈️ ブックマーク空港を選択</h3>
+      <button class="modal-close" onclick="closePicker()">✕</button>
+    </div>
+    <div class="modal-body" id="picker-body"></div>
+    <button class="modal-save" onclick="savePicker()">保存する</button>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settings-modal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-sheet">
+    <div class="modal-head" style="flex-shrink:0;padding-bottom:0">
+      <h3>⚙️ 設定</h3>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:12px">
+      <div class="s-label">ユーザー名</div>
+      <input class="s-input" id="s-name" type="text" maxlength="20"
+             placeholder="英数字・ハイフン・アンダースコアのみ">
+      <div class="s-label">デフォルト空港</div>
+      <select class="s-input" id="s-default"></select>
+      <div class="s-label">共有URL（ブックマーク＆設定込み）</div>
+      <div class="share-box" id="share-box" onclick="copyShareUrl()" title="タップでコピー"></div>
+    </div>
+    <button class="modal-save" onclick="saveSettings()">保存する</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+<script>
+// ===== AIRPORT DATA =====
+const BY_REGION = {
+  "北海道":{"RJCO":"札幌丘珠","RJEC":"旭川","RJCK":"釧路","RJCB":"女満別"},
+  "東北":  {"RJSS":"仙台","RJSK":"秋田"},
+  "関東":  {"RJTT":"羽田","RJAA":"成田"},
+  "中部":  {"RJGG":"中部国際","RJNA":"名古屋"},
+  "近畿":  {"RJOO":"伊丹","RJBB":"関西","RJBE":"神戸"},
+  "中国":  {"RJOA":"広島","RJOB":"岡山"},
+  "四国":  {"RJOT":"高松","RJOM":"松山"},
+  "九州":  {"RJFF":"福岡"},
+  "沖縄":  {"ROAH":"那覇"}
+};
+const AIRPORTS={};
+for(const r of Object.values(BY_REGION)) for(const[c,n] of Object.entries(r)) AIRPORTS[c]=n;
+const COORDS={
+  RJCO:[43.116,141.381],RJEC:[43.671,142.448],RJCK:[43.041,144.193],RJCB:[43.880,144.164],
+  RJSS:[38.140,140.917],RJSK:[39.616,140.219],RJTT:[35.552,139.780],RJAA:[35.765,140.386],
+  RJGG:[34.858,136.805],RJNA:[35.255,136.924],RJOO:[34.785,135.438],RJBB:[34.435,135.244],
+  RJBE:[34.633,135.224],RJOA:[34.436,132.919],RJOB:[34.758,133.855],RJOT:[34.214,134.016],
+  RJOM:[33.827,132.700],RJFF:[33.586,130.451],ROAH:[26.196,127.646]
+};
+
+// ===== STATE =====
+let username='', bookmarks=['RJOO'], defAP='RJOO', curAP='RJOO';
+const cache={};
+let pickerTmp=[];
+
+// ===== CACHE =====
+const getCached=k=>{const c=cache[k];return(c&&Date.now()-c.ts<1800000)?c.d:null};
+const setCache=(k,d)=>{cache[k]={ts:Date.now(),d}};
+
+// ===== URL =====
+function buildUrl(){
+  const u=new URL(location.href);
+  u.searchParams.set('u',username);
+  u.searchParams.set('bm',bookmarks.join(','));
+  u.searchParams.set('def',defAP);
+  return u.toString();
+}
+const pushUrl=()=>history.replaceState({},'',buildUrl());
+
+// ===== INIT =====
+function init(){
+  const p=new URLSearchParams(location.search);
+  username=p.get('u')||localStorage.getItem('username')||'';
+  const bmStr=p.get('bm')||localStorage.getItem('bookmarks');
+  if(bmStr){
+    const arr=(bmStr.startsWith('['))?JSON.parse(bmStr):bmStr.split(',');
+    bookmarks=arr.filter(c=>AIRPORTS[c]);
+  }
+  if(!bookmarks.length) bookmarks=['RJOO'];
+  const d=p.get('def')||localStorage.getItem('default')||bookmarks[0];
+  defAP=(AIRPORTS[d]?d:bookmarks[0]);
+  curAP=defAP;
+
+  if(!username){
+    document.getElementById('setup-screen').style.display='flex';
+  } else {
+    showApp();
+  }
+}
+
+function showApp(){
+  localStorage.setItem('username',username);
+  localStorage.setItem('bookmarks',JSON.stringify(bookmarks));
+  localStorage.setItem('default',defAP);
+  pushUrl();
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('user-label').textContent=username;
+  renderBmButtons();
+  loadAP(curAP);
+}
+
+// ===== SETUP =====
+function doSetup(){
+  const v=document.getElementById('setup-name').value.trim().replace(/[^\w\-]/g,'');
+  if(!v){document.getElementById('setup-name').style.borderColor='var(--red)';return;}
+  username=v;
+  showApp();
+}
+
+// ===== BOOKMARK BUTTONS =====
+function renderBmButtons(){
+  document.getElementById('bm-buttons').innerHTML=bookmarks.map(c=>{
+    const active=c===curAP?'active':'';
+    return `<button class="bm-btn ${active}" onclick="selAP('${c}')">${c}<small>${AIRPORTS[c]||''}</small></button>`;
+  }).join('');
+}
+
+// ===== SELECT AIRPORT =====
+async function selAP(c){curAP=c;renderBmButtons();await loadAP(c);}
+
+// ===== LOAD DATA =====
+async function loadAP(code){
+  const loadEl=document.getElementById('loading');
+  const cardsEl=document.getElementById('cards');
+  loadEl.style.display='block';
+  cardsEl.style.opacity='.4';
+  try{
+    const[metar,fc]=await Promise.all([fetchMetar(code),fetchFc(code)]);
+    renderVapor(metar);
+    renderBakuyake(fc);
+    renderMoon(code);
+    if(code==='RJOO'){
+      document.getElementById('one4-card').style.display='block';
+      renderOne4(metar);
+    } else {
+      document.getElementById('one4-card').style.display='none';
+    }
+  } finally {
+    loadEl.style.display='none';
+    cardsEl.style.opacity='1';
+  }
+}
+
+// ===== METAR FETCH =====
+async function fetchMetar(code){
+  const k=`m-${code}`;const cached=getCached(k);if(cached)return cached;
+  try{
+    const r=await fetch(`https://aviationweather.gov/api/data/metar?ids=${code}&format=json`);
+    const d=await r.json();
+    if(Array.isArray(d)&&d.length){setCache(k,d[0]);return d[0];}
+  }catch(e){console.warn('METAR',e);}
+  return null;
+}
+
+// ===== FORECAST FETCH =====
+async function fetchFc(code){
+  const k=`f-${code}`;const cached=getCached(k);if(cached)return cached;
+  const c=COORDS[code];if(!c)return null;
+  const[lat,lon]=c;
+  try{
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
+      `&hourly=cloud_cover,cloud_cover_high,relative_humidity_2m,visibility,precipitation`+
+      `&daily=sunset&timezone=Asia%2FTokyo&forecast_days=7`;
+    const r=await fetch(url);
+    const d=await r.json();
+    setCache(k,d);return d;
+  }catch(e){console.warn('Forecast',e);}
+  return null;
+}
+
+// ===== RENDER VAPOR =====
+function renderVapor(m){
+  const el=document.getElementById('vapor-body');
+  if(!m){el.innerHTML='<p class="err">⚠️ METARデータを取得できませんでした</p>';return;}
+  const t=m.temp,d=m.dewp;
+  if(t==null||d==null){el.innerHTML='<p class="err">⚠️ 気温・露点データがありません</p>';return;}
+  const sp=Math.round((t-d)*10)/10;
+  let emoji,label,desc;
+  if(sp<=1.0){emoji='✅';label='ほぼ確実';desc=`スプレッドが${sp}°Cと非常に低く、ベイパーが発生する可能性は高いです。`;}
+  else if(sp<=3.0){emoji='⚡';label='可能性あり';desc=`スプレッドが${sp}°Cで、条件が整えばベイパーが見えるかもしれません。`;}
+  else{emoji='❌';label='やや厳しい';desc=`スプレッドが${sp}°Cで、現状ではベイパーの発生は難しそうです。`;}
+  const obsT=m.reportTime?m.reportTime.substring(11,16)+' UTC':'—';
+  const wdir=m.wdir!=null?`${m.wdir}°`:'—';
+  const wspd=m.wspd!=null?`${m.wspd}kt`:'—';
+  const gust=m.wgst?` (G${m.wgst}kt)`:'';
+  el.innerHTML=`
+    <div class="status-block">
+      <div class="status-emoji">${emoji}</div>
+      <div class="status-info">
+        <div class="status-label">${label}</div>
+        <div class="status-desc">${desc}</div>
+      </div>
+    </div>
+    <div class="dr"><span>気温</span><span>${t}°C</span></div>
+    <div class="dr"><span>露点温度</span><span>${d}°C</span></div>
+    <div class="dr"><span>スプレッド</span><span>${sp}°C</span></div>
+    <div class="dr"><span>風</span><span>${wdir} / ${wspd}${gust}</span></div>
+    <div class="dr"><span>観測時刻</span><span>${obsT}</span></div>`;
+}
+
+// ===== BAKUYAKE SCORE =====
+function calcBK(c){
+  const cl=c.cloud;
+  let cs;
+  if(cl<20)cs=cl/20;else if(cl<=50)cs=1;else if(cl<=80)cs=(80-cl)/30;else cs=0;
+  const hs=c.cloud_high/100;
+  const hu=c.humidity;
+  const hus=hu>40?Math.max(0,(80-hu)/40):1;
+  const vs=Math.min(1,c.vis_m/20000);
+  const rb=(c.precip3>=0.5&&c.precip3<=15)?1:0;
+  return Math.min(100,Math.round((cs*.40+hs*.10+hus*.25+vs*.15+rb*.10)*100));
+}
+
+// ===== RENDER BAKUYAKE =====
+function renderBakuyake(fc){
+  const el=document.getElementById('bk-body');
+  if(!fc||!fc.daily){el.innerHTML='<p class="err">⚠️ 予報データを取得できませんでした</p>';return;}
+  const daily=fc.daily,hr=fc.hourly;
+  let html=`<table class="bk-table"><thead><tr><th>日付</th><th>日没</th><th>スコア</th><th>判定</th></tr></thead><tbody>`;
+  for(let i=0;i<Math.min(7,daily.time.length);i++){
+    const date=daily.time[i];
+    const ss=daily.sunset[i];if(!ss)continue;
+    const ssHour=parseInt(ss.substring(11,13));
+    const ssMin=ss.substring(11,16);
+    const target=`${date}T${String(ssHour).padStart(2,'0')}:00`;
+    const idx=hr.time.indexOf(target);if(idx<0)continue;
+    let p3=0;
+    for(let j=Math.max(0,idx-1);j<=Math.min(hr.time.length-1,idx+1);j++) p3+=(hr.precipitation[j]||0);
+    const c={cloud:hr.cloud_cover[idx]||0,cloud_high:hr.cloud_cover_high[idx]||0,
+      humidity:hr.relative_humidity_2m[idx]||50,vis_m:hr.visibility[idx]||10000,precip3:p3};
+    const sc=calcBK(c);
+    let emoji,cls;
+    if(sc>=70){emoji='🔥';cls='sc-hi';}else if(sc>=50){emoji='🌅';cls='sc-md';}
+    else if(sc>=30){emoji='🌤';cls='';}else{emoji='😐';cls='sc-lo';}
+    html+=`<tr><td>${fmtDate(date)}</td><td>${ssMin}</td><td class="sc ${cls}">${sc}</td><td>${emoji}</td></tr>`;
+  }
+  html+='</tbody></table>';
+  el.innerHTML=html;
+}
+
+// ===== RENDER MOON =====
+function renderMoon(code){
+  const el=document.getElementById('moon-body');
+  const[lat,lon]=COORDS[code]||[35,135];
+  const today=new Date();
+  let html='<div class="moon-scroll"><div class="moon-grid">';
+  for(let i=0;i<7;i++){
+    const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i,12,0,0);
+    const ill=SunCalc.getMoonIllumination(d);
+    const ph=ill.phase;
+    const age=ph*29.53;
+    const pname=moonName(age);
+    const mt=SunCalc.getMoonTimes(d,lat,lon);
+    let riseStr='—',azStr='—';
+    if(mt.rise){
+      const r=mt.rise;
+      riseStr=pad(r.getHours())+':'+pad(r.getMinutes());
+      const pos=SunCalc.getMoonPosition(mt.rise,lat,lon);
+      const az=((pos.azimuth*180/Math.PI)+180+360)%360;
+      azStr=Math.round(az)+'° '+azLabel(az);
+    }
+    html+=`<div class="moon-day">
+      <div class="moon-date">${fmtDate2(d)}</div>
+      <canvas class="moon-canvas" width="56" height="56" data-ph="${ph}"></canvas>
+      <div class="moon-pname">${pname}</div>
+      <div class="moon-rise">🌕 ${riseStr}</div>
+      <div class="moon-az">⬆ ${azStr}</div>
+    </div>`;
+  }
+  html+='</div></div>';
+  el.innerHTML=html;
+  el.querySelectorAll('.moon-canvas').forEach(cv=>drawMoon(cv,parseFloat(cv.dataset.ph)));
+}
+
+// ===== DRAW MOON =====
+function drawMoon(cv,p){
+  const sz=cv.width,ctx=cv.getContext('2d');
+  const img=ctx.createImageData(sz,sz);const d=img.data;
+  const cx=(sz-1)/2,cy=(sz-1)/2,r=sz/2*.90;
+  for(let y=0;y<sz;y++)for(let x=0;x<sz;x++){
+    const nx=(x-cx)/r,ny=(y-cy)/r;
+    if(nx*nx+ny*ny>1)continue;
+    const st=Math.sqrt(Math.max(0,1-ny*ny));
+    const lit=p<=.5?nx>(1-4*p)*st:-nx>(4*(p-.5)-1)*st;
+    const i=(y*sz+x)*4;
+    if(lit){d[i]=255;d[i+1]=240;d[i+2]=180;d[i+3]=255;}
+    else{d[i]=25;d[i+1]=25;d[i+2]=45;d[i+3]=200;}
+  }
+  ctx.putImageData(img,0,0);
+}
+
+// ===== MOON PHASE NAME =====
+function moonName(age){
+  const a=age%29.53;
+  if(a<1.5)return'新月';if(a<5.5)return'三日月';if(a<9.5)return'上弦前';
+  if(a<11.5)return'上弦の月';if(a<13.5)return'十三夜';if(a<15.5)return'満月';
+  if(a<17.5)return'十六夜';if(a<19.5)return'立待月';if(a<21.5)return'居待月';
+  if(a<23.5)return'下弦の月';if(a<26.5)return'下弦後';return'晦日月';
+}
+
+// ===== RENDER ONE4 =====
+function renderOne4(m){
+  const el=document.getElementById('one4-body');
+  if(!m){el.innerHTML='<p class="err">⚠️ METARデータなし</p>';return;}
+  const wd=m.wdir,ws=m.wspd;
+  if(wd==null||ws==null){el.innerHTML='<p class="err">⚠️ 風データがありません</p>';return;}
+  const tw=ws*Math.cos(Math.PI/180*(wd-140));
+  const twR=Math.round(tw*10)/10;
+  const prob=Math.min(100,Math.max(0,Math.round(twR*8)));
+  let emoji,label,desc;
+  if(twR>=12){emoji='🔴';label='ランチェンゾーン';desc='ランウェイチェンジの可能性が高い状況です。';}
+  else if(twR>=9){emoji='🟡';label='接近中';desc='ランチェンに近づいています。動向を注視してください。';}
+  else{emoji='🟢';label='通常運用';desc='RWY14の通常運用が継続されています。';}
+  el.innerHTML=`
+    <div class="status-block">
+      <div class="status-emoji">${emoji}</div>
+      <div class="status-info">
+        <div class="status-label">${label}</div>
+        <div class="status-desc">${desc}</div>
+      </div>
+    </div>
+    <div class="dr"><span>風向</span><span>${wd}°</span></div>
+    <div class="dr"><span>風速</span><span>${ws}kt</span></div>
+    <div class="dr"><span>追い風成分（RWY14）</span><span>${twR}kt</span></div>
+    <div class="dr"><span>ランチェン確率</span><span>${prob}%</span></div>`;
+}
+
+// ===== HELPERS =====
+const DAYS=['日','月','火','水','木','金','土'];
+function fmtDate(s){const[y,mo,d]=s.split('-').map(Number);const dt=new Date(y,mo-1,d);return`${mo}/${d}(${DAYS[dt.getDay()]})`;}
+function fmtDate2(dt){return`${dt.getMonth()+1}/${dt.getDate()}(${DAYS[dt.getDay()]})`;}
+function pad(n){return String(n).padStart(2,'0');}
+function azLabel(az){const i=Math.round(az/22.5)%16;return['北','北北東','北東','東北東','東','東南東','南東','南南東','南','南南西','南西','西南西','西','西北西','北西','北北西'][i];}
+
+// ===== SETTINGS MODAL =====
+function openSettings(){
+  document.getElementById('s-name').value=username;
+  const sel=document.getElementById('s-default');
+  sel.innerHTML=bookmarks.map(c=>`<option value="${c}"${c===defAP?' selected':''}>${c} ${AIRPORTS[c]||''}</option>`).join('');
+  document.getElementById('share-box').textContent=buildUrl();
+  document.getElementById('settings-modal').classList.add('open');
+}
+function closeSettings(){document.getElementById('settings-modal').classList.remove('open');}
+function saveSettings(){
+  const n=document.getElementById('s-name').value.trim().replace(/[^\w\-]/g,'');
+  if(n) username=n;
+  const nd=document.getElementById('s-default').value;
+  if(nd&&AIRPORTS[nd]) defAP=nd;
+  localStorage.setItem('username',username);
+  localStorage.setItem('default',defAP);
+  document.getElementById('user-label').textContent=username;
+  pushUrl();
+  closeSettings();
+}
+async function copyShareUrl(){
+  try{await navigator.clipboard.writeText(buildUrl());document.getElementById('share-box').textContent='コピーしました！✅';}
+  catch{document.getElementById('share-box').textContent=buildUrl();}
+  setTimeout(()=>{document.getElementById('share-box').textContent=buildUrl();},2000);
+}
+
+// ===== AIRPORT PICKER =====
+function openPicker(){
+  pickerTmp=[...bookmarks];
+  const el=document.getElementById('picker-body');
+  let html='';
+  for(const[region,aps] of Object.entries(BY_REGION)){
+    html+=`<div class="region-label">${region}</div>`;
+    for(const[code,name] of Object.entries(aps)){
+      const chk=pickerTmp.includes(code)?'checked':'';
+      const def=defAP===code?'<span class="def-badge">デフォルト</span>':'';
+      html+=`<label class="ap-item">
+        <input type="checkbox" value="${code}" ${chk} onchange="togglePicker('${code}',this.checked)">
+        <span class="ap-code">${code}</span><span>${name}${def}</span>
+      </label>`;
+    }
+  }
+  el.innerHTML=html;
+  document.getElementById('picker-modal').classList.add('open');
+}
+function closePicker(){document.getElementById('picker-modal').classList.remove('open');}
+function togglePicker(code,add){
+  if(add&&!pickerTmp.includes(code))pickerTmp.push(code);
+  else if(!add)pickerTmp=pickerTmp.filter(c=>c!==code);
+}
+function savePicker(){
+  if(!pickerTmp.length){alert('最低1つ選択してください');return;}
+  bookmarks=pickerTmp;
+  if(!bookmarks.includes(defAP)) defAP=bookmarks[0];
+  if(!bookmarks.includes(curAP)) curAP=bookmarks[0];
+  localStorage.setItem('bookmarks',JSON.stringify(bookmarks));
+  localStorage.setItem('default',defAP);
+  pushUrl();
+  renderBmButtons();
+  closePicker();
+  loadAP(curAP);
+}
+
+// ===== SERVICE WORKER =====
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// ===== START =====
+init();
+</script>
+</body>
+</html>

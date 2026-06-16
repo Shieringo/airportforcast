@@ -1,5 +1,6 @@
 users/
 *.json
 !static/*.json
+!manifest.json
 __pycache__/
 *.pyc

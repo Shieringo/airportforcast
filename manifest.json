@@ -1,0 +1,16 @@
+{
+  "name": "Airport Forcast",
+  "short_name": "Airport",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0e1117",
+  "theme_color": "#0e1117",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
