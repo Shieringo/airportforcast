@@ -244,15 +244,15 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
 <script>
 // ===== AIRPORT DATA =====
 const BY_REGION = {
-  "北海道":{"RJCO":"札幌丘珠","RJEC":"旭川","RJCK":"釧路","RJCB":"女満別"},
-  "東北":  {"RJSS":"仙台","RJSK":"秋田"},
-  "関東":  {"RJTT":"羽田","RJAA":"成田"},
-  "中部":  {"RJGG":"中部国際","RJNA":"名古屋"},
-  "近畿":  {"RJOO":"伊丹","RJBB":"関西","RJBE":"神戸"},
-  "中国":  {"RJOA":"広島","RJOB":"岡山"},
-  "四国":  {"RJOT":"高松","RJOM":"松山"},
-  "九州":  {"RJFF":"福岡"},
-  "沖縄":  {"ROAH":"那覇"}
+  "北海道":{"RJCO":"札幌丘珠空港","RJEC":"旭川空港","RJCK":"釧路空港","RJCB":"女満別空港"},
+  "東北":  {"RJSS":"仙台空港","RJSK":"秋田空港"},
+  "関東":  {"RJTT":"東京国際空港","RJAA":"成田国際空港"},
+  "中部":  {"RJGG":"中部国際空港","RJNA":"県営名古屋空港"},
+  "近畿":  {"RJOO":"大阪国際空港","RJBB":"関西国際空港","RJBE":"神戸空港"},
+  "中国":  {"RJOA":"広島空港","RJOB":"岡山桃太郎空港"},
+  "四国":  {"RJOT":"高松空港","RJOM":"松山空港"},
+  "九州":  {"RJFF":"福岡空港"},
+  "沖縄":  {"ROAH":"那覇空港"}
 };
 const AIRPORTS={};
 for(const r of Object.values(BY_REGION)) for(const[c,n] of Object.entries(r)) AIRPORTS[c]=n;
