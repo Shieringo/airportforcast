@@ -528,7 +528,7 @@ def show_card(code, name):
 
 # ページ設定
 st.set_page_config(
-    page_title="Airport Forcast",
+    page_title="Airport Forecast",
     page_icon=_ICON_IMG,
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -695,7 +695,7 @@ if not user_id:
     st.markdown(
         f'<h2 style="display:flex;align-items:center;gap:10px;">'
         f'<img src="data:image/png;base64,{_ICON_B64}" width="36" style="border-radius:6px;">'
-        f'Airport Forcast</h2>',
+        f'Airport Forecast</h2>',
         unsafe_allow_html=True,
     )
     st.divider()
@@ -745,7 +745,7 @@ default_code = st.query_params.get("def", "")
 st.markdown(
     f'<h2 style="display:flex;align-items:center;gap:10px;">'
     f'<img src="data:image/png;base64,{_ICON_B64}" width="36" style="border-radius:6px;">'
-    f'Airport Forcast</h2>',
+    f'Airport Forecast</h2>',
     unsafe_allow_html=True,
 )
 st.caption(f"更新: {datetime.now(JST).strftime('%m/%d %H:%M')} JST　|　METAR（30分キャッシュ）　|　v0615")
