@@ -245,7 +245,7 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
     </section>
 
     <section class="card" id="vapor-card">
-      <h2>🌫️ ベイパー予報</h2>
+      <h2>🌫️ ベイパースコア</h2>
       <div id="vapor-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
       <details class="formula">
         <summary>ベイパー発生の計算式</summary>
@@ -274,8 +274,40 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
       </details>
     </section>
 
+    <section class="card" id="rainbow-card">
+      <h2>🌈 虹色コントレイルスコア</h2>
+      <div id="rainbow-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
+      <details class="formula">
+        <summary>虹色コントレイルの計算式</summary>
+        <div class="formula-body">
+          <h4>スコア = 高層湿度スコア × 太陽仰角係数</h4>
+          <div class="code-block">高層湿度スコア（300hPa ≈ 9,500m）
+  RH &lt; 40%          → 0
+  RH 40〜60%        → 0〜30（線形）
+  RH 60〜80%        → 30〜70（線形）
+  RH 80〜100%       → 70〜100（線形）
+
+太陽仰角係数
+  仰角 &lt; 10°        → 0（太陽が低すぎ）
+  仰角 10〜15°       → 0〜0.5
+  仰角 15〜35°       → 1.0（ゴールデンゾーン）
+  仰角 35〜50°       → 1.0〜0.4
+  仰角 &gt; 50°        → 0.4〜0（昼間は厳しい）</div>
+          <h4>なぜこの条件か</h4>
+          <p>虹色飛行機雲（コントレイル彩雲）は回折現象。生まれたての飛行機雲の氷晶が均一サイズのとき、太陽から10〜40°の角度で撮影すると虹色に見える。上空300hPa（約9,500m / FL310）の湿度が高いほど氷晶が豊富に形成され、彩雲が出やすい。</p>
+          <h4>撮影のコツ</h4>
+          <p>太陽からこぶし2〜4個（20〜40°）離れた方向を向いて空を見る。太陽を直視せず、その「すぐ隣」に飛行機雲が来た瞬間がシャッターチャンス。</p>
+          <h4>データソース</h4>
+          <table><tbody>
+            <tr><td>300hPa 相対湿度</td><td>Open-Meteo（1時間ごと予報）</td></tr>
+            <tr><td>太陽仰角</td><td>SunCalc.js（時刻・座標から計算）</td></tr>
+          </tbody></table>
+        </div>
+      </details>
+    </section>
+
     <section class="card" id="one4-card" style="display:none">
-      <h2>✈️ ワンフォー予報</h2>
+      <h2>✈️ ワンフォースコア</h2>
       <div id="one4-body"></div>
       <details class="formula">
         <summary>ワンフォースコアの計算式</summary>
@@ -466,6 +498,7 @@ async function loadAP(code){
     const[metar,fc]=await Promise.all([fetchMetar(code),fetchFc(code)]);
     try{renderVapor(metar);}catch(e){document.getElementById('vapor-body').innerHTML='<p class="err">⚠️ ベイパー描画エラー: '+e.message+'</p>';}
     try{renderBakuyake(fc);}catch(e){document.getElementById('bk-body').innerHTML='<p class="err">⚠️ 爆焼け描画エラー: '+e.message+'</p>';}
+    try{renderRainbow(fc,code);}catch(e){document.getElementById('rainbow-body').innerHTML='<p class="err">⚠️ 虹色コントレイル描画エラー: '+e.message+'</p>';}
     try{renderMoon(code);}catch(e){document.getElementById('moon-body').innerHTML='<p class="err">⚠️ 月情報描画エラー: '+e.message+'</p>';}
     if(code==='RJOO'){
       document.getElementById('one4-card').style.display='block';
@@ -512,7 +545,7 @@ async function fetchFc(code){
   try{
     const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
       `&current=temperature_2m,dew_point_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m`+
-      `&hourly=cloud_cover,cloud_cover_high,relative_humidity_2m,visibility,precipitation`+
+      `&hourly=cloud_cover,cloud_cover_high,relative_humidity_2m,relative_humidity_300hPa,visibility,precipitation`+
       `&daily=sunset&timezone=Asia%2FTokyo&forecast_days=7`;
     const r=await fetch(url);
     if(!r.ok)throw new Error(`HTTP ${r.status}`);
@@ -720,6 +753,98 @@ function moonName(age){
   if(a<11.5)return'上弦の月';if(a<13.5)return'十三夜';if(a<15.5)return'満月';
   if(a<17.5)return'十六夜';if(a<19.5)return'立待月';if(a<21.5)return'居待月';
   if(a<23.5)return'下弦の月';if(a<26.5)return'下弦後';return'晦日月';
+}
+
+// ===== RENDER RAINBOW CONTRAIL =====
+function renderRainbow(fc,code){
+  const el=document.getElementById('rainbow-body');
+  if(!fc||!fc.hourly){el.innerHTML='<p style="color:var(--sub);font-size:13px">データなし</p>';return;}
+  const coords=COORDS[code];
+  if(!coords){el.innerHTML='<p style="color:var(--sub);font-size:13px">座標データなし</p>';return;}
+  const[lat,lon]=coords;
+  const times=fc.hourly.time;
+  const rhArr=fc.hourly.relative_humidity_300hPa;
+  if(!rhArr){el.innerHTML='<p style="color:var(--sub);font-size:13px">高層湿度データを取得できませんでした</p>';return;}
+
+  // 今日の24時間スコアを計算
+  const scores=[];
+  for(let i=0;i<24;i++){
+    const rh=rhArr[i]??0;
+    const dt=new Date(times[i]+'+09:00');
+    const sun=SunCalc.getPosition(dt,lat,lon);
+    const altDeg=sun.altitude*180/Math.PI;
+    const score=Math.round(rhScore300(rh)*sunScoreRainbow(altDeg));
+    scores.push({i,rh,altDeg,score});
+  }
+
+  const peak=scores.reduce((a,b)=>a.score>b.score?a:b);
+  const peakScore=peak.score;
+
+  // ゴールデンタイムウィンドウ（ピークの60%以上）
+  const thr=Math.max(20,peakScore*0.6);
+  const good=scores.filter(h=>h.score>=thr);
+  let windowStr='—';
+  if(good.length>0){
+    windowStr=`${pad(good[0].i)}:00 〜 ${pad(good[good.length-1].i+1)}:00 JST`;
+  }
+
+  // 現在時刻のスコア
+  const nowJST=new Date(Date.now()+9*3600000);
+  const curH=nowJST.getUTCHours();
+  const cur=scores[curH]||scores[0];
+
+  let cardColor,bgColor,verdict;
+  if(peakScore>=70){cardColor='#c084fc';bgColor='#1a0d2e';verdict='🌈 今日は虹色コントレイルのチャンスあり！';}
+  else if(peakScore>=40){cardColor='#818cf8';bgColor='#0f1535';verdict='🔵 条件が揃えば見えるかも';}
+  else{cardColor='#445566';bgColor='#111';verdict='⚪ 今日は難しそう';}
+
+  const sunLabel=cur.altDeg>0?`+${Math.round(cur.altDeg*10)/10}`:`${Math.round(cur.altDeg*10)/10}`;
+  const sunColor=(cur.altDeg>=10&&cur.altDeg<=50)?'#facc15':'#666';
+
+  el.innerHTML=`
+<div style="border-radius:18px;padding:22px 20px 16px;margin:8px 0;border-left:7px solid ${cardColor};background:${bgColor};">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+    <div>
+      <div style="font-size:1.1em;font-weight:bold;color:#fff;">今日のピーク</div>
+      <div style="font-size:0.82em;color:#aaa;margin-top:2px;">ゴールデンタイム: ${windowStr}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:0.72em;color:#999;">ピークスコア</div>
+      <div style="font-size:2.6em;font-weight:bold;color:#fff;line-height:1.1;">${peakScore}<span style="font-size:0.5em;color:#888;"> /100</span></div>
+    </div>
+  </div>
+  <div style="height:8px;background:#333;border-radius:4px;margin:0 0 14px;">
+    <div style="height:8px;border-radius:4px;background:linear-gradient(to right,#f87171,#fb923c,#facc15,#4ade80,#60a5fa,#a78bfa);width:${peakScore}%;"></div>
+  </div>
+  <div style="font-size:1.05em;font-weight:bold;color:${cardColor};margin-bottom:12px;">${verdict}</div>
+  <div style="display:flex;gap:6px;width:100%;box-sizing:border-box;">
+    <div style="flex:1;text-align:center;padding:10px 4px 8px;border-radius:12px;background:#ffffff10;">
+      <div style="font-size:1.4em;font-weight:bold;color:#a78bfa;">${cur.rh}<span style="font-size:0.5em;"> %</span></div>
+      <div style="font-size:0.7em;color:#aaa;margin-top:4px;">高層湿度<br>300hPa</div>
+    </div>
+    <div style="flex:1;text-align:center;padding:10px 4px 8px;border-radius:12px;background:#ffffff10;">
+      <div style="font-size:1.4em;font-weight:bold;color:${sunColor};">${sunLabel}<span style="font-size:0.5em;"> °</span></div>
+      <div style="font-size:0.7em;color:#aaa;margin-top:4px;">現在<br>太陽仰角</div>
+    </div>
+    <div style="flex:1;text-align:center;padding:10px 4px 8px;border-radius:12px;background:#ffffff10;">
+      <div style="font-size:1.4em;font-weight:bold;color:#60a5fa;">${cur.score}<span style="font-size:0.5em;"> pt</span></div>
+      <div style="font-size:0.7em;color:#aaa;margin-top:4px;">現在<br>スコア</div>
+    </div>
+  </div>
+</div>`;
+}
+function rhScore300(rh){
+  if(rh<40)return 0;
+  if(rh<60)return(rh-40)/20*30;
+  if(rh<80)return 30+(rh-60)/20*40;
+  return Math.min(100,70+(rh-80)/20*30);
+}
+function sunScoreRainbow(alt){
+  if(alt<10)return 0;
+  if(alt<=15)return(alt-10)/5*0.5;
+  if(alt<=35)return 1.0;
+  if(alt<=50)return 1.0-(alt-35)/15*0.6;
+  return Math.max(0,0.4-(alt-50)/40*0.4);
 }
 
 // ===== RENDER ONE4 =====
