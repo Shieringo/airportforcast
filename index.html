@@ -37,7 +37,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 #app{display:none}
 
 /* Header */
-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
 .h-left{display:flex;align-items:center;gap:8px}
 .app-icon{font-size:20px}
 .app-title{font-size:17px;font-weight:800;letter-spacing:-.3px}
@@ -47,6 +47,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
 /* Airport Selector */
 .airport-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--border);scrollbar-width:none}
+/* データ時刻バー */
+#data-ts{font-size:11px;color:var(--sub);padding:5px 16px 4px;background:var(--card);border-bottom:1px solid var(--border);display:none}
 .airport-bar::-webkit-scrollbar{display:none}
 .bm-btn{background:var(--bg);border:1px solid var(--border);color:var(--sub);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;font-size:12px;line-height:1.4;text-align:center;min-width:72px;transition:all .15s;flex-shrink:0}
 .bm-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -158,11 +160,12 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
       <img src="apple-touch-icon.png" width="80" height="80" style="border-radius:16px;">
     </div>
     <h1>Airport Forecast</h1>
-    <p>ようこそ！まずお名前（識別名）を入力してください。<br>ホーム画面に追加すると次回から自動ログインします。</p>
-    <input class="setup-input" id="setup-name" type="text" placeholder="例: taro, yuki123" maxlength="20"
+    <p>ようこそ！お名前とよく使う空港を設定してください。<br>ホーム画面に追加すると次回から自動ログインします。</p>
+    <input class="setup-input" id="setup-name" type="text" placeholder="識別名（例: taro, yuki123）" maxlength="20"
            onkeydown="if(event.key==='Enter')doSetup()">
+    <select class="setup-input" id="setup-airport" style="appearance:auto;color:var(--sub)"></select>
     <button class="setup-btn" onclick="doSetup()">はじめる ✈️</button>
-    <p class="setup-note">英数字・ハイフン・アンダースコアのみ使えます<br>（名前はURLに含まれます）</p>
+    <p class="setup-note">識別名は英数字・ハイフン・アンダースコアのみ（URLに含まれます）</p>
   </div>
 </div>
 
@@ -184,6 +187,7 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
     <div id="bm-buttons" style="display:contents"></div>
     <button class="add-btn" onclick="openPicker()">＋ 追加</button>
   </div>
+  <div id="data-ts"></div>
 
   <div id="loading" style="display:none">📡 データ取得中...</div>
 
@@ -398,6 +402,20 @@ function init(){
   curAP=defAP;
 
   if(!username){
+    // セレクトボックスを地域別に生成
+    const sel=document.getElementById('setup-airport');
+    for(const[region,aps] of Object.entries(BY_REGION)){
+      const og=document.createElement('optgroup');
+      og.label=region;
+      for(const[code,name] of Object.entries(aps)){
+        const opt=document.createElement('option');
+        opt.value=code;
+        opt.textContent=`${name}（${code}）`;
+        if(code==='RJOO') opt.selected=true;
+        og.appendChild(opt);
+      }
+      sel.appendChild(og);
+    }
     document.getElementById('setup-screen').style.display='flex';
   } else {
     showApp();
@@ -421,6 +439,9 @@ function doSetup(){
   const v=document.getElementById('setup-name').value.trim().replace(/[^\w\-]/g,'');
   if(!v){document.getElementById('setup-name').style.borderColor='var(--red)';return;}
   username=v;
+  const ap=document.getElementById('setup-airport').value||'RJOO';
+  defAP=ap; curAP=ap;
+  if(!bookmarks.includes(ap)) bookmarks=[ap];
   showApp();
 }
 
@@ -468,9 +489,19 @@ async function fetchMetar(code){
     if(!r.ok)throw new Error(`HTTP ${r.status}`);
     _metarAll=await r.json();
     _metarTs=Date.now();
+    updateDataTs();
     return _metarAll[code]||null;
   }catch(e){console.warn('metar.json fetch failed:',e.message);}
   return null;
+}
+function updateDataTs(){
+  const el=document.getElementById('data-ts');
+  if(!el||!_metarAll)return;
+  const upd=_metarAll['_updated'];
+  const metarJst=upd?fmtJST(upd):'—';
+  const nowJst=(()=>{const n=new Date();const j=new Date(n.getTime()+9*3600000);return pad(j.getUTCHours())+':'+pad(j.getUTCMinutes());})();
+  el.style.display='block';
+  el.textContent=`METAR更新: ${metarJst}　／　取得: ${nowJst} JST`;
 }
 
 // ===== FORECAST FETCH (current + 7day via Open-Meteo) =====
@@ -817,6 +848,7 @@ function savePicker(){
 // ===== RELOAD =====
 function reloadData(){
   Object.keys(cache).forEach(k=>delete cache[k]);
+  _metarAll=null; _metarTs=0;  // METARキャッシュもリセット → metar.jsonを再取得
   if(curAP) loadAP(curAP);
 }
 
