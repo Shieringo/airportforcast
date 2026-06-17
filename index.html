@@ -239,41 +239,6 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
       </details>
     </section>
 
-    <section class="card" id="moon-card">
-      <h2>🌙 月情報（7日間）</h2>
-      <div id="moon-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
-    </section>
-
-    <section class="card" id="vapor-card">
-      <h2>🌫️ ベイパースコア</h2>
-      <div id="vapor-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
-      <details class="formula">
-        <summary>ベイパー発生の計算式</summary>
-        <div class="formula-body">
-          <h4>スプレッド（温度差）</h4>
-          <div class="code-block">スプレッド = 気温 − 露点温度</div>
-          <h4>判定基準</h4>
-          <table>
-            <thead><tr><th>スプレッド</th><th>判定</th></tr></thead>
-            <tbody>
-              <tr><td>0〜1°C</td><td>✅ ほぼ確実に出る</td></tr>
-              <tr><td>1〜3°C</td><td>⚡ 出る可能性あり</td></tr>
-              <tr><td>3°C 超</td><td>❌ まず出ない</td></tr>
-            </tbody>
-          </table>
-          <h4>なぜスプレッドが小さいと出るのか</h4>
-          <p>着陸時に翼端渦・フラップ後縁で局所的な気圧降下が発生する。この圧力低下により温度がさらに下がり、露点に達して空気中の水分が凝結し、ベイパーとして可視化される。</p>
-          <p>朝方・雨上がり直後・海沿い → 湿度が高くなりやすい<br>大型機・フル高揚力装置展開の着陸時 → 渦が強く出やすい</p>
-          <h4>データソース</h4>
-          <table>
-            <tbody>
-              <tr><td>気温・露点温度</td><td>aviationweather.gov（METAR、30分更新）</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </details>
-    </section>
-
     <section class="card" id="rainbow-card">
       <h2>🌈 虹色コントレイルスコア</h2>
       <div id="rainbow-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
@@ -302,6 +267,36 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
             <tr><td>300hPa 相対湿度</td><td>Open-Meteo（1時間ごと予報）</td></tr>
             <tr><td>太陽仰角</td><td>SunCalc.js（時刻・座標から計算）</td></tr>
           </tbody></table>
+        </div>
+      </details>
+    </section>
+
+    <section class="card" id="vapor-card">
+      <h2>🌫️ ベイパースコア</h2>
+      <div id="vapor-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
+      <details class="formula">
+        <summary>ベイパー発生の計算式</summary>
+        <div class="formula-body">
+          <h4>スプレッド（温度差）</h4>
+          <div class="code-block">スプレッド = 気温 − 露点温度</div>
+          <h4>判定基準</h4>
+          <table>
+            <thead><tr><th>スプレッド</th><th>判定</th></tr></thead>
+            <tbody>
+              <tr><td>0〜1°C</td><td>✅ ほぼ確実に出る</td></tr>
+              <tr><td>1〜3°C</td><td>⚡ 出る可能性あり</td></tr>
+              <tr><td>3°C 超</td><td>❌ まず出ない</td></tr>
+            </tbody>
+          </table>
+          <h4>なぜスプレッドが小さいと出るのか</h4>
+          <p>着陸時に翼端渦・フラップ後縁で局所的な気圧降下が発生する。この圧力低下により温度がさらに下がり、露点に達して空気中の水分が凝結し、ベイパーとして可視化される。</p>
+          <p>朝方・雨上がり直後・海沿い → 湿度が高くなりやすい<br>大型機・フル高揚力装置展開の着陸時 → 渦が強く出やすい</p>
+          <h4>データソース</h4>
+          <table>
+            <tbody>
+              <tr><td>気温・露点温度</td><td>aviationweather.gov（METAR、30分更新）</td></tr>
+            </tbody>
+          </table>
         </div>
       </details>
     </section>
@@ -340,6 +335,11 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
           </tbody></table>
         </div>
       </details>
+    </section>
+
+    <section class="card" id="moon-card">
+      <h2>🌙 月情報（7日間）</h2>
+      <div id="moon-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
     </section>
 
     <section class="card" id="one4-card" style="display:none">
