@@ -337,6 +337,46 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
       </details>
     </section>
 
+    <section class="card" id="rbv-card" style="display:none">
+      <h2>🌈 虹色ベイパー</h2>
+      <div id="rbv-body"></div>
+      <details class="formula">
+        <summary>RWY32 離陸→左旋回ベイパーの計算式</summary>
+        <div class="formula-body">
+          <h4>総合スコア = 湿度スコア×0.7 ＋ 時間帯スコア×0.3</h4>
+          <div class="code-block">湿度スコア（スプレッド = 気温 − 露点）
+  ≤ 1.0°C → 100点
+  ≤ 3.0°C → 線形に逓減
+  > 3.0°C → 0点
+
+時間帯スコア（JST）
+   7〜 9時 → 100点（朝日が東・逆光ベイパー最適）
+   9〜11時 →  80点（朝の光 良好）
+   6〜 7時 →  40点（夜間門限前）
+  11〜14時 →  30点（太陽が高くなる）
+  その他   →  10点</div>
+          <h4>このシナリオ</h4>
+          <p>RWY32（北北西方向）離陸後に左旋回すると機体は南南西方向へ転じる。猪名寺・塚口・伊丹市南部はこの旋回後ルート直下にあたり、低高度＋フラップ展開中の機体を正面から狙える。旋回中の荷重増加でベイパーが強調される。</p>
+          <h4>推奨撮影スポット</h4>
+          <table>
+            <thead><tr><th>スポット</th><th>見え方</th></tr></thead>
+            <tbody>
+              <tr><td>猪名寺（猪名川堤防）</td><td>旋回後の機体を正面〜北側から</td></tr>
+              <tr><td>塚口（JR塚口駅周辺）</td><td>旋回後の機体を西側から</td></tr>
+              <tr><td>伊丹市南部（猪名川東岸）</td><td>上昇中の機体を東側から</td></tr>
+            </tbody>
+          </table>
+          <h4>データソース</h4>
+          <table>
+            <tbody>
+              <tr><td>気温・露点</td><td>aviationweather.gov（METAR、伊丹 RJOO）</td></tr>
+              <tr><td>時刻</td><td>端末の現在時刻（JST変換）</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
     <section class="card" id="moon-card">
       <h2>🌙 月情報（7日間）</h2>
       <div id="moon-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
@@ -538,9 +578,12 @@ async function loadAP(code){
     try{renderRainbowArc(fc,code);}catch(e){document.getElementById('arc-body').innerHTML='<p class="err">⚠️ レインボー描画エラー: '+e.message+'</p>';}
     try{renderMoon(code);}catch(e){document.getElementById('moon-body').innerHTML='<p class="err">⚠️ 月情報描画エラー: '+e.message+'</p>';}
     if(code==='RJOO'){
+      document.getElementById('rbv-card').style.display='block';
+      try{renderRainbowVapor(metar);}catch(e){document.getElementById('rbv-body').innerHTML='<p class="err">⚠️ 虹色ベイパー描画エラー: '+e.message+'</p>';}
       document.getElementById('one4-card').style.display='block';
       try{renderOne4(metar);}catch(e){document.getElementById('one4-body').innerHTML='<p class="err">⚠️ ワンフォー描画エラー: '+e.message+'</p>';}
     } else {
+      document.getElementById('rbv-card').style.display='none';
       document.getElementById('one4-card').style.display='none';
     }
   } finally {
@@ -1041,6 +1084,70 @@ function renderOne4(m){
   </div>
   <div style="font-size:1.1em;font-weight:bold;color:${cardColor};">${verdict}</div>
   <div style="font-size:0.75em;color:#666;margin-top:8px;">追い風成分が 9.0〜11.9 でランチェン可能性あり、12.0 以上が断続的に続く場合に RWY14 運用になる可能性が大きくなります。</div>
+</div>`;
+}
+
+// ===== RAINBOW VAPOR (RJOO RWY32 left-turn) =====
+function renderRainbowVapor(m){
+  const el=document.getElementById('rbv-body');
+  if(!m){el.innerHTML='<p class="err">⚠️ METARデータなし</p>';return;}
+  const t=m.temp,d=m.dewp;
+  if(t==null||d==null){el.innerHTML='<p class="err">⚠️ 気温・露点データがありません</p>';return;}
+
+  // 湿度スコア
+  const sp=Math.round((t-d)*10)/10;
+  let humScore;
+  if(sp<=1.0) humScore=100;
+  else if(sp<=3.0) humScore=Math.round((3.0-sp)/2.0*100);
+  else humScore=0;
+
+  // 時間帯スコア（JST）
+  const nowJST=new Date(Date.now()+9*3600000);
+  const h=nowJST.getUTCHours()+nowJST.getUTCMinutes()/60;
+  let sunScore,sunLabel;
+  if(h>=7&&h<9){sunScore=100;sunLabel='朝日が東・逆光ベイパー最適';}
+  else if(h>=9&&h<11){sunScore=80;sunLabel='朝の光 良好';}
+  else if(h>=6&&h<7){sunScore=40;sunLabel='夜間門限前（7時から運航再開）';}
+  else if(h>=11&&h<14){sunScore=30;sunLabel='太陽が高くなる時間帯';}
+  else{sunScore=10;sunLabel='午後〜夜間は条件が難しい';}
+
+  // 総合スコア
+  const total=Math.round(humScore*0.7+sunScore*0.3);
+
+  let color,verdict;
+  if(total>=70){color='#d946ef';verdict='🌈 虹色ベイパー チャンス！';}
+  else if(total>=40){color='#f39c12';verdict='⚡ 条件が揃いつつある';}
+  else{color='#445566';verdict='❌ 今は条件が揃っていない';}
+
+  const hStr=String(nowJST.getUTCHours()).padStart(2,'0')+':'+String(nowJST.getUTCMinutes()).padStart(2,'0');
+
+  el.innerHTML=`
+<div style="border-radius:18px;padding:18px 20px;margin:8px 0;border-left:7px solid ${color};background:#1a0a2e;">
+  <div style="font-size:0.78em;color:#999;margin-bottom:6px;">🌈 RWY32 離陸→左旋回 — 大阪国際空港</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+    <div>
+      <div style="font-size:1.3em;font-weight:bold;color:#fff;">虹色ベイパースコア</div>
+      <div style="font-size:0.82em;color:#aaa;margin-top:3px;">猪名寺・塚口・伊丹市南部 が最適スポット</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:0.72em;color:#999;">スコア</div>
+      <div style="font-size:2.6em;font-weight:bold;color:${color};line-height:1.1;">${total}<span style="font-size:0.5em;color:#888;">点</span></div>
+    </div>
+  </div>
+  <div style="height:6px;background:#333;border-radius:4px;margin-bottom:10px;">
+    <div style="height:6px;border-radius:4px;background:${color};width:${total}%;transition:width .3s;"></div>
+  </div>
+  <div style="font-size:1.1em;font-weight:bold;color:${color};margin-bottom:12px;">${verdict}</div>
+  <div style="display:flex;flex-direction:column;gap:6px;font-size:0.82em;">
+    <div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,.05);border-radius:8px;">
+      <span style="color:#aaa;">💧 湿度（スプレッド ${sp}°C）</span>
+      <span style="font-weight:bold;color:#fff;">${humScore}点</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,.05);border-radius:8px;">
+      <span style="color:#aaa;">☀️ 時間帯 ${hStr} JST — ${sunLabel}</span>
+      <span style="font-weight:bold;color:#fff;">${sunScore}点</span>
+    </div>
+  </div>
 </div>`;
 }
 
