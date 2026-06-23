@@ -271,6 +271,46 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
       </details>
     </section>
 
+    <section class="card" id="rbv-card" style="display:none">
+      <h2>🌈 虹色ベイパー</h2>
+      <div id="rbv-body"></div>
+      <details class="formula">
+        <summary>RWY32 離陸→左旋回ベイパーの計算式</summary>
+        <div class="formula-body">
+          <h4>総合スコア = 湿度スコア×0.7 ＋ 時間帯スコア×0.3</h4>
+          <div class="code-block">湿度スコア（スプレッド = 気温 − 露点）
+  ≤ 1.0°C → 100点
+  ≤ 3.0°C → 線形に逓減
+  > 3.0°C → 0点
+
+時間帯スコア（JST）
+   7〜 9時 → 100点（朝日が東・逆光ベイパー最適）
+   9〜11時 →  80点（朝の光 良好）
+   6〜 7時 →  40点（夜間門限前）
+  11〜14時 →  30点（太陽が高くなる）
+  その他   →  10点</div>
+          <h4>このシナリオ</h4>
+          <p>RWY32（北北西方向）離陸後に左旋回すると機体は南南西方向へ転じる。猪名寺・塚口・伊丹市南部はこの旋回後ルート直下にあたり、低高度＋フラップ展開中の機体を正面から狙える。旋回中の荷重増加でベイパーが強調される。</p>
+          <h4>推奨撮影スポット</h4>
+          <table>
+            <thead><tr><th>スポット</th><th>見え方</th></tr></thead>
+            <tbody>
+              <tr><td>猪名寺（猪名川堤防）</td><td>旋回後の機体を正面〜北側から</td></tr>
+              <tr><td>塚口（JR塚口駅周辺）</td><td>旋回後の機体を西側から</td></tr>
+              <tr><td>伊丹市南部（猪名川東岸）</td><td>上昇中の機体を東側から</td></tr>
+            </tbody>
+          </table>
+          <h4>データソース</h4>
+          <table>
+            <tbody>
+              <tr><td>気温・露点</td><td>aviationweather.gov（METAR、伊丹 RJOO）</td></tr>
+              <tr><td>時刻</td><td>端末の現在時刻（JST変換）</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
     <section class="card" id="vapor-card">
       <h2>🌫️ ベイパースコア</h2>
       <div id="vapor-body"><p style="color:var(--sub);font-size:13px">空港を選択してください</p></div>
@@ -333,46 +373,6 @@ main{padding:12px 16px;display:flex;flex-direction:column;gap:12px;padding-botto
             <tr><td>雲量</td><td>Open-Meteo（hourly cloud_cover）</td></tr>
             <tr><td>太陽仰角</td><td>SunCalc.js（時刻・座標から計算）</td></tr>
           </tbody></table>
-        </div>
-      </details>
-    </section>
-
-    <section class="card" id="rbv-card" style="display:none">
-      <h2>🌈 虹色ベイパー</h2>
-      <div id="rbv-body"></div>
-      <details class="formula">
-        <summary>RWY32 離陸→左旋回ベイパーの計算式</summary>
-        <div class="formula-body">
-          <h4>総合スコア = 湿度スコア×0.7 ＋ 時間帯スコア×0.3</h4>
-          <div class="code-block">湿度スコア（スプレッド = 気温 − 露点）
-  ≤ 1.0°C → 100点
-  ≤ 3.0°C → 線形に逓減
-  > 3.0°C → 0点
-
-時間帯スコア（JST）
-   7〜 9時 → 100点（朝日が東・逆光ベイパー最適）
-   9〜11時 →  80点（朝の光 良好）
-   6〜 7時 →  40点（夜間門限前）
-  11〜14時 →  30点（太陽が高くなる）
-  その他   →  10点</div>
-          <h4>このシナリオ</h4>
-          <p>RWY32（北北西方向）離陸後に左旋回すると機体は南南西方向へ転じる。猪名寺・塚口・伊丹市南部はこの旋回後ルート直下にあたり、低高度＋フラップ展開中の機体を正面から狙える。旋回中の荷重増加でベイパーが強調される。</p>
-          <h4>推奨撮影スポット</h4>
-          <table>
-            <thead><tr><th>スポット</th><th>見え方</th></tr></thead>
-            <tbody>
-              <tr><td>猪名寺（猪名川堤防）</td><td>旋回後の機体を正面〜北側から</td></tr>
-              <tr><td>塚口（JR塚口駅周辺）</td><td>旋回後の機体を西側から</td></tr>
-              <tr><td>伊丹市南部（猪名川東岸）</td><td>上昇中の機体を東側から</td></tr>
-            </tbody>
-          </table>
-          <h4>データソース</h4>
-          <table>
-            <tbody>
-              <tr><td>気温・露点</td><td>aviationweather.gov（METAR、伊丹 RJOO）</td></tr>
-              <tr><td>時刻</td><td>端末の現在時刻（JST変換）</td></tr>
-            </tbody>
-          </table>
         </div>
       </details>
     </section>
