@@ -16,7 +16,7 @@ AIRPORTS = [
 
 def fetch_metar(codes):
     ids = ",".join(codes)
-    url = f"https://aviationweather.gov/api/data/metar?ids={ids}&format=json&hours=2&mostRecent=true&taf=false"
+    url = f"https://aviationweather.gov/api/data/metar?ids={ids}&format=json&hours=3&mostRecent=true&taf=false"
     req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "AirportForecast/1.0"})
     with urllib.request.urlopen(req, timeout=30) as resp:
         return json.loads(resp.read().decode())
@@ -36,6 +36,7 @@ def main():
                 "wspd":       m.get("wspd"),
                 "wgst":       m.get("wgst"),
                 "reportTime": m.get("reportTime"),
+                "rawOb":      m.get("rawOb"),
             }
         print(f"OK: {len(result)} airports fetched")
     except Exception as e:

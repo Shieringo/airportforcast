@@ -615,8 +615,14 @@ function updateDataTs(){
   const upd=_metarAll['_updated'];
   const metarJst=upd?fmtJST(upd):'—';
   const nowJst=(()=>{const n=new Date();const j=new Date(n.getTime()+9*3600000);return pad(j.getUTCHours())+':'+pad(j.getUTCMinutes());})();
+  const staleMs=upd?Date.now()-new Date(upd).getTime():Infinity;
+  const stalMin=Math.round(staleMs/60000);
+  let staleNote='',staleColor='';
+  if(staleMs>5400000){staleNote=' ⚠️ データが古い可能性（'+stalMin+'分前）';staleColor='#e74c3c';}
+  else if(staleMs>3600000){staleNote=' △ 更新が遅れています（'+stalMin+'分前）';staleColor='#f39c12';}
   el.style.display='block';
-  el.textContent=`METAR更新: ${metarJst}　／　取得: ${nowJst} JST`;
+  el.style.color=staleColor||'';
+  el.textContent=`METAR更新: ${metarJst} JST　／　取得: ${nowJst} JST${staleNote}`;
 }
 
 // ===== FORECAST FETCH (current + 7day via Open-Meteo) =====
@@ -1031,12 +1037,13 @@ function renderOne4(m){
   if(wd==null||ws==null){el.innerHTML='<p class="err">⚠️ 風データがありません</p>';return;}
   if(wd==='VRB'){
     const gust=m.wgst?` （最大 ${m.wgst}kt）`:'';
+    const rawNote=m.rawOb?`<div style="font-size:0.7em;color:#555;margin-top:8px;font-family:monospace;">${m.rawOb}</div>`:'';
     el.innerHTML=`
 <div style="border-radius:18px;padding:18px 20px;margin:8px 0;border-left:7px solid #8892b0;background:#151c22;">
   <div style="font-size:0.78em;color:#999;margin-bottom:8px;">✈ RWY14 運用可能性 — 大阪国際空港</div>
   <div style="display:flex;justify-content:space-between;align-items:flex-start;">
     <div>
-      <div style="font-size:1.3em;font-weight:bold;color:#fff;">VRB（風向不定） / ${ws}kt${gust}</div>
+      <div style="font-size:1.3em;font-weight:bold;color:#fff;">風向不定（VRB） / ${ws}kt${gust}</div>
       <div style="font-size:1.2em;font-weight:bold;color:#ccc;margin-top:6px;">追い風成分: 計算不可</div>
     </div>
     <div style="text-align:right;">
@@ -1045,6 +1052,8 @@ function renderOne4(m){
     </div>
   </div>
   <div style="margin-top:12px;font-size:1.05em;font-weight:bold;color:#8892b0;">🔵 風向不定 — RWY32 通常運用の可能性が高い</div>
+  <div style="font-size:0.72em;color:#666;margin-top:6px;">VRBはMETARの「風向不定」記録です（データ取得失敗ではありません）</div>
+  ${rawNote}
 </div>`;
     return;
   }
@@ -1068,6 +1077,7 @@ function renderOne4(m){
   const compass=compassDirs[Math.round(wd/22.5)%16]||'';
   const gust=m.wgst?`（最大 ${m.wgst}kt）`:'';
   const windInfo=`${wd}° ${compass} / ${ws}kt${gust?' '+gust:''}`;
+  const rawNote=m.rawOb?`<div style="font-size:0.7em;color:#555;margin-top:6px;font-family:monospace;">${m.rawOb}</div>`:'';
   el.innerHTML=`
 <div style="border-radius:18px;padding:18px 20px;margin:8px 0;border-left:7px solid ${cardColor};background:${bgColor};">
   <div style="font-size:0.78em;color:#999;margin-bottom:8px;">✈ RWY14 運用可能性 — 大阪国際空港</div>
@@ -1086,6 +1096,7 @@ function renderOne4(m){
   </div>
   <div style="font-size:1.1em;font-weight:bold;color:${cardColor};">${verdict}</div>
   <div style="font-size:0.75em;color:#666;margin-top:8px;">追い風成分が 9.0〜11.9 でランチェン可能性あり、12.0 以上が断続的に続く場合に RWY14 運用になる可能性が大きくなります。</div>
+  ${rawNote}
 </div>`;
 }
 
